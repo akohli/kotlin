@@ -26,6 +26,7 @@ import org.jetbrains.jet.codegen.signature.JvmMethodParameterKind;
 import org.jetbrains.jet.codegen.signature.JvmMethodParameterSignature;
 import org.jetbrains.jet.codegen.signature.JvmMethodSignature;
 import org.jetbrains.jet.codegen.state.GenerationState;
+import org.jetbrains.jet.lang.descriptors.FunctionDescriptor;
 import org.jetbrains.jet.lang.resolve.calls.model.ResolvedCall;
 import org.jetbrains.jet.lang.resolve.java.JvmAbi;
 
@@ -44,6 +45,8 @@ public class CallableMethod implements Callable {
     private final Type thisClass;
     private final Type receiverParameterType;
     private final Type generateCalleeType;
+
+    private FunctionDescriptor functionDescriptor;
 
     public CallableMethod(
             @NotNull Type owner,
@@ -170,5 +173,13 @@ public class CallableMethod implements Callable {
     @Override
     public String toString() {
         return Printer.OPCODES[invokeOpcode] + " " + owner.getInternalName() + "." + signature;
+    }
+
+    public FunctionDescriptor getFunctionDescriptor() {
+        return functionDescriptor;
+    }
+
+    public void setFunctionDescriptor(FunctionDescriptor functionDescriptor) {
+        this.functionDescriptor = functionDescriptor;
     }
 }

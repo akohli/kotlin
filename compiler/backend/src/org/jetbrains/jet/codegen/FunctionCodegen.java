@@ -63,7 +63,7 @@ public class FunctionCodegen extends ParentCodegenAwareImpl {
 
     private final ClassBuilder v;
 
-    public FunctionCodegen(@NotNull CodegenContext owner, @NotNull ClassBuilder v, @NotNull GenerationState state, MemberCodegen parentCodegen) {
+    public FunctionCodegen(@NotNull CodegenContext owner, @Nullable ClassBuilder v, @NotNull GenerationState state, MemberCodegen parentCodegen) {
         super(state, parentCodegen);
         this.owner = owner;
         this.v = v;
@@ -254,7 +254,7 @@ public class FunctionCodegen extends ParentCodegenAwareImpl {
         }
     }
 
-    private void generateMethodBody(
+    public void generateMethodBody(
             @NotNull MethodVisitor mv,
             @NotNull FunctionDescriptor functionDescriptor,
             @NotNull MethodContext context,
@@ -290,9 +290,10 @@ public class FunctionCodegen extends ParentCodegenAwareImpl {
         Label methodEnd = new Label();
         mv.visitLabel(methodEnd);
 
-
-        Type thisType = getThisTypeForFunction(functionDescriptor, context);
-        generateLocalVariableTable(mv, signature, functionDescriptor, thisType, methodBegin, methodEnd, context.getContextKind());
+        if (strategy.generateLocalVarTable()) {
+            Type thisType = getThisTypeForFunction(functionDescriptor, context);
+            generateLocalVariableTable(mv, signature, functionDescriptor, thisType, methodBegin, methodEnd, context.getContextKind());
+        }
     }
 
     private static void generateLocalVariableTable(
