@@ -507,9 +507,11 @@ public class JetTypeMapper extends BindingTraceAware {
         else {
             receiverParameterType = null;
         }
-        return new CallableMethod(
+        CallableMethod method = new CallableMethod(
                 owner, ownerForDefaultImpl, ownerForDefaultParam, descriptor, invokeOpcode,
                 thisClass, receiverParameterType, calleeType);
+        method.setFunctionDescriptor(functionDescriptor);
+        return method;
     }
 
     public static boolean isAccessor(@NotNull CallableMemberDescriptor descriptor) {
@@ -862,6 +864,11 @@ public class JetTypeMapper extends BindingTraceAware {
 
     @NotNull
     private static JvmMethodSignature erasedInvokeSignature(@NotNull FunctionDescriptor descriptor) {
+        return erasedInvokeSignature(descriptor, null);
+    }
+
+    @NotNull
+    public static JvmMethodSignature erasedInvokeSignature(@NotNull FunctionDescriptor descriptor, @Nullable Type additionalFunctionType) {
         BothSignatureWriter sw = new BothSignatureWriter(BothSignatureWriter.Mode.METHOD);
 
         int paramCount = descriptor.getValueParameters().size();
@@ -874,6 +881,12 @@ public class JetTypeMapper extends BindingTraceAware {
         for (int i = 0; i < paramCount; ++i) {
             sw.writeParameterType(JvmMethodParameterKind.VALUE);
             sw.writeAsmType(OBJECT_TYPE);
+            sw.writeParameterTypeEnd();
+        }
+
+        if (additionalFunctionType != null) {
+            sw.writeParameterType(JvmMethodParameterKind.VALUE);
+            sw.writeAsmType(additionalFunctionType);
             sw.writeParameterTypeEnd();
         }
 
