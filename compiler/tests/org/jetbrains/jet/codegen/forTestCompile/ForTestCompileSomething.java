@@ -34,7 +34,7 @@ import java.util.jar.JarOutputStream;
 
 abstract class ForTestCompileSomething {
 
-    public static final boolean ACTUALLY_COMPILE = !"false".equals(System.getenv("kotlin.tests.actually.compile"));
+    public static final boolean ACTUALLY_COMPILE = false;
 
     @NotNull
     private final String jarName;
