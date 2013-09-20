@@ -968,7 +968,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
                 public void doGenerateBody(@NotNull ExpressionCodegen codegen, @NotNull JvmMethodSignature signature) {
                     InstructionAdapter iv = codegen.v;
                     boolean forceField = AsmUtil.isPropertyWithBackingFieldInOuterClass(original) && !isClassObject(bridge.getContainingDeclaration());
-                    StackValue property = codegen.intermediateValueForProperty(original, forceField, null, MethodKind.SYNTHETIC_ACCESSOR);
+                    StackValue property = codegen.intermediateValueForProperty(original, forceField, null, MethodKind.SYNTHETIC_ACCESSOR, codegen.getContext());
                     if (!forceField) {
                         iv.load(0, OBJECT_TYPE);
                     }
@@ -987,7 +987,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
                     @Override
                     public void doGenerateBody(@NotNull ExpressionCodegen codegen, @NotNull JvmMethodSignature signature) {
                         boolean forceField = AsmUtil.isPropertyWithBackingFieldInOuterClass(original) && !isClassObject(bridge.getContainingDeclaration());
-                        StackValue property = codegen.intermediateValueForProperty(original, forceField, null, MethodKind.SYNTHETIC_ACCESSOR);
+                        StackValue property = codegen.intermediateValueForProperty(original, forceField, null, MethodKind.SYNTHETIC_ACCESSOR, codegen.getContext());
                         InstructionAdapter iv = codegen.v;
 
                         Type[] argTypes = signature.getAsmMethod().getArgumentTypes();
@@ -1645,7 +1645,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
 
         JetType jetType = getPropertyOrDelegateType(bindingContext, property, propertyDescriptor);
 
-        StackValue.StackValueWithSimpleReceiver propValue = codegen.intermediateValueForProperty(propertyDescriptor, true, null, MethodKind.INITIALIZER);
+        StackValue.StackValueWithSimpleReceiver propValue = codegen.intermediateValueForProperty(propertyDescriptor, true, null, MethodKind.INITIALIZER, codegen.getContext());
 
         if (!propValue.isStatic) {
             codegen.v.load(0, OBJECT_TYPE);
