@@ -75,8 +75,7 @@ public inline fun <T> expect(expected: T, block: ()-> T) {
 
 /** Asserts that given function block returns the given expected value and use the given message if it fails */
 public inline fun <T> expect(expected: T, message: String, block: ()-> T) {
-    val actual = block()
-    assertEquals(expected, actual, message)
+    assertEquals(expected, block(), message)
 }
 
 /** Asserts that given function block fails by throwing an exception */
