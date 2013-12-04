@@ -192,7 +192,8 @@ public class CodegenBinding {
             closure.setCaptureThis();
         }
 
-        if (enclosing != null) {
+        //TEMPORARY EAT INNER CLASS INFO FOR FUNCTION LITERALS
+        if (enclosing != null && !(element instanceof JetFunctionLiteral)) {
             recordInnerClass(bindingTrace, enclosing, classDescriptor);
         }
     }
