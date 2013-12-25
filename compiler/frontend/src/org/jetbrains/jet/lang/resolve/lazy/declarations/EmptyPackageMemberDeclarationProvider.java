@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ package org.jetbrains.jet.lang.resolve.lazy.declarations;
 
 import com.intellij.psi.NavigatablePsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jet.lang.psi.JetClassOrObject;
-import org.jetbrains.jet.lang.psi.JetDeclaration;
-import org.jetbrains.jet.lang.psi.JetNamedFunction;
-import org.jetbrains.jet.lang.psi.JetProperty;
+import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.Name;
 
@@ -43,6 +40,12 @@ public class EmptyPackageMemberDeclarationProvider implements PackageMemberDecla
     @NotNull
     @Override
     public Collection<NavigatablePsiElement> getPackageDeclarations(FqName fqName) {
+        return Collections.emptyList();
+    }
+
+    @NotNull
+    @Override
+    public Collection<JetFile> getPackageFiles() {
         return Collections.emptyList();
     }
 
