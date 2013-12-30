@@ -48,7 +48,7 @@ public class KotlinLightClassForPackage extends KotlinWrappingLightClass impleme
     private final GlobalSearchScope searchScope;
     private final Collection<JetFile> files;
     private final int hashCode;
-    private final CachedValue<LightClassStubWithData> javaFileStub;
+    private final CachedValue<KotlinPackageLightClassData> javaFileStub;
     private final PsiModifierList modifierList;
     private final LightEmptyImplementsList implementsList;
 
@@ -67,7 +67,7 @@ public class KotlinLightClassForPackage extends KotlinWrappingLightClass impleme
         assert !files.isEmpty() : "No files for package " + packageFqName;
         this.files = Sets.newHashSet(files); // needed for hashCode
         this.hashCode = computeHashCode();
-        KotlinJavaFileStubProvider stubProvider =
+        KotlinJavaFileStubProvider<KotlinPackageLightClassData> stubProvider =
                 KotlinJavaFileStubProvider.createForPackageClass(getProject(), packageFqName, searchScope);
         this.javaFileStub = CachedValuesManager.getManager(getProject()).createCachedValue(stubProvider, /*trackValue = */false);
     }

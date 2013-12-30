@@ -63,7 +63,7 @@ import java.util.List;
 import static org.jetbrains.jet.lexer.JetTokens.*;
 
 public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightClass implements KotlinLightClass, JetJavaMirrorMarker {
-    private final static Key<CachedValue<LightClassStubWithData>> JAVA_API_STUB = Key.create("JAVA_API_STUB");
+    private final static Key<CachedValue<OutermostKotlinClassLightClassData>> JAVA_API_STUB = Key.create("JAVA_API_STUB");
 
     @Nullable
     public static KotlinLightClassForExplicitDeclaration create(@NotNull PsiManager manager, @NotNull JetClassOrObject classOrObject) {
@@ -237,7 +237,7 @@ public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightC
 
     @NotNull
     private PsiJavaFileStub getJavaFileStub() {
-        return getLightClassStubWithData().getJavaFileStub();
+        return getLightClassData().getJavaFileStub();
     }
 
     @Nullable
@@ -247,12 +247,12 @@ public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightC
     }
 
     @NotNull
-    private LightClassStubWithData getLightClassStubWithData() {
-        return getLightClassStubWithData(classOrObject);
+    private OutermostKotlinClassLightClassData getLightClassData() {
+        return getLightClassData(classOrObject);
     }
 
     @NotNull
-    private static LightClassStubWithData getLightClassStubWithData(JetClassOrObject classOrObject) {
+    private static OutermostKotlinClassLightClassData getLightClassData(JetClassOrObject classOrObject) {
         JetClassOrObject outermostClassOrObject = getOutermostClassOrObject(classOrObject);
         return CachedValuesManager.getManager(classOrObject.getProject()).getCachedValue(
                 outermostClassOrObject,
@@ -264,8 +264,7 @@ public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightC
 
     @Nullable
     private static LightClassDataForKotlinClass getLightClassDataExactly(JetClassOrObject classOrObject) {
-        OutermostKotlinClassLightClassData data =
-                (OutermostKotlinClassLightClassData) getLightClassStubWithData(classOrObject).getClassData();
+        OutermostKotlinClassLightClassData data = getLightClassData(classOrObject);
         return data.getClassOrObject().equals(classOrObject) ? data : data.getAllInnerClasses().get(classOrObject);
     }
 
