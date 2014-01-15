@@ -71,7 +71,7 @@ public final class ClassFileFactory extends GenerationStateAware implements Outp
         return answer;
     }
 
-    private void done() {
+    void done() {
         if (!isDone) {
             isDone = true;
             for (PackageCodegen codegen : package2codegen.values()) {
@@ -201,13 +201,13 @@ public final class ClassFileFactory extends GenerationStateAware implements Outp
 
         @Override
         public byte[] asByteArray() {
-            done();
+            //done();
             return builderFactory.asBytes(generators.get(relativeClassFilePath).classBuilder);
         }
 
         @Override
         public String asText() {
-            done();
+            //done();
             return builderFactory.asText(generators.get(relativeClassFilePath).classBuilder);
         }
     }
