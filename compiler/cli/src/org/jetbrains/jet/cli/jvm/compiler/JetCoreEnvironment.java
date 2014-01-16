@@ -54,6 +54,7 @@ import org.jetbrains.jet.lang.parsing.JetParserDefinition;
 import org.jetbrains.jet.lang.parsing.JetScriptDefinitionProvider;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.java.JetFilesProvider;
+import org.jetbrains.jet.lang.resolve.kotlin.ClassFileFinder;
 import org.jetbrains.jet.lang.resolve.kotlin.VirtualFileFinder;
 import org.jetbrains.jet.plugin.JetFileType;
 import org.jetbrains.jet.utils.PathUtil;
@@ -198,7 +199,10 @@ public class JetCoreEnvironment {
         JetScriptDefinitionProvider.getInstance(project).addScriptDefinitions(
                 configuration.getList(CommonConfigurationKeys.SCRIPT_DEFINITIONS_KEY));
 
-        project.registerService(VirtualFileFinder.class, new CliVirtualFileFinder(classPath));
+        CliVirtualFileFinder implementation = new CliVirtualFileFinder(classPath);
+
+        project.registerService(VirtualFileFinder.class, implementation);
+        project.registerService(ClassFileFinder.class, implementation);
 
         project.registerService(PsiDocumentManager.class, new MockPsiDocumentManager());
     }
