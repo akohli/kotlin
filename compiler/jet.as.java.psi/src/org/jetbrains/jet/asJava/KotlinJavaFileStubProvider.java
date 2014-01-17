@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.ClassFileViewProvider;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.compiled.ClsFileImpl;
@@ -33,6 +35,7 @@ import com.intellij.psi.stubs.PsiClassHolderFileStub;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.Stack;
@@ -92,6 +95,11 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
                     @Override
                     public FqName getPackageFqName() {
                         return packageFqName;
+                    }
+
+                    @Override
+                    public GenerationState.GenerateClassFilter generateDeclaredClasses() {
+                        return GenerationState.GenerateClassFilter.ONLY_PACKAGE_CLASS;
                     }
 
                     @Override
@@ -172,9 +180,29 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
                     }
 
                     @Override
+                    public GenerationState.GenerateClassFilter generateDeclaredClasses() {
+                        return new GenerationState.GenerateClassFilter() {
+                            @Override
+                            public boolean shouldGenerate(JetClassOrObject generatedClassOrObject) {
+                                if (generatedClassOrObject == classOrObject) return true;
+
+                                PsiElement commonParent = PsiTreeUtil.findCommonParent(generatedClassOrObject, classOrObject);
+                                return commonParent != null && !(commonParent instanceof PsiFile);
+                            }
+                        };
+                    }
+
+                    @Override
                     public void generate(@NotNull GenerationState state, @NotNull Collection<JetFile> files) {
                         PackageCodegen packageCodegen = state.getFactory().forPackage(getPackageFqName(), files);
-                        packageCodegen.generateClassOrObject(classOrObject);
+
+                        //if (JetPsiUtil.isLocal(classOrObject)) {
+                        //    packageCodegen.generate(CompilationErrorHandler.THROW_EXCEPTION);
+                        //}
+                        //else {
+                            packageCodegen.generateClassOrObject(classOrObject);
+                        //}
+
                         state.getFactory().asList();
                     }
                 }
@@ -309,18 +337,15 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
     private interface StubGenerationStrategy<T extends WithFileStub> {
         @NotNull Collection<JetFile> getFiles();
         @NotNull FqName getPackageFqName();
+
         @NotNull LightClassConstructionContext getContext(@NotNull Collection<JetFile> files);
         @NotNull T createLightClassData(PsiJavaFileStub javaFileStub, BindingContext bindingContext);
 
-        boolean generateDeclaredClasses();
+        GenerationState.GenerateClassFilter generateDeclaredClasses();
+
         void generate(@NotNull GenerationState state, @NotNull Collection<JetFile> files);
 
         abstract class NoDeclaredClasses<U extends WithFileStub> implements StubGenerationStrategy<U> {
-            @Override
-            public boolean generateDeclaredClasses() {
-                return false;
-            }
-
             @Override
             public String toString() {
                 // For subclasses to be identifiable in the debugger
@@ -329,11 +354,6 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
         }
 
         abstract class WithDeclaredClasses<U extends WithFileStub> implements StubGenerationStrategy<U> {
-            @Override
-            public boolean generateDeclaredClasses() {
-                return true;
-            }
-
             @Override
             public String toString() {
                 // For subclasses to be identifiable in the debugger

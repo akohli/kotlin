@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.asm4.Type;
 import org.jetbrains.jet.codegen.PackageCodegen;
+import org.jetbrains.jet.codegen.state.GenerationState;
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
 import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.BindingContext;
@@ -163,7 +164,7 @@ public final class PsiCodegenPredictor {
             }
         };
 
-        CodegenBinding.initTrace(trace, allPackageFiles);
+        CodegenBinding.initTrace(trace, allPackageFiles, GenerationState.GenerateClassFilter.GENERATE_ALL);
 
         return resultingDescriptor.isNull() ? null
                : BindingContextUtils.getContainingFile(trace.getBindingContext(), resultingDescriptor.get());

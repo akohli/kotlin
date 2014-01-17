@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.asm4.Type;
 import org.jetbrains.jet.codegen.SamCodegenUtil;
+import org.jetbrains.jet.codegen.state.GenerationState;
 import org.jetbrains.jet.lang.descriptors.*;
 import org.jetbrains.jet.lang.descriptors.impl.ClassDescriptorImpl;
 import org.jetbrains.jet.lang.psi.*;
@@ -83,10 +84,12 @@ class CodegenAnnotatingVisitor extends JetVisitorVoid {
     private final Stack<ClassDescriptorWithState> classStack = new Stack<ClassDescriptorWithState>();
     private final Stack<String> nameStack = new Stack<String>();
     private final BindingTrace bindingTrace;
+    private final GenerationState.GenerateClassFilter filter;
     private final BindingContext bindingContext;
 
-    public CodegenAnnotatingVisitor(BindingTrace bindingTrace) {
+    public CodegenAnnotatingVisitor(BindingTrace bindingTrace, GenerationState.GenerateClassFilter filter) {
         this.bindingTrace = bindingTrace;
+        this.filter = filter;
         this.bindingContext = bindingTrace.getBindingContext();
     }
 
@@ -209,6 +212,8 @@ class CodegenAnnotatingVisitor extends JetVisitorVoid {
 
     @Override
     public void visitClass(@NotNull JetClass klass) {
+        if (!filter.shouldGenerate(klass)) return;
+
         ClassDescriptor classDescriptor = bindingContext.get(CLASS, klass);
         // working around a problem with shallow analysis
         if (classDescriptor == null) return;
@@ -307,6 +312,7 @@ class CodegenAnnotatingVisitor extends JetVisitorVoid {
         ResolvedCall<? extends CallableDescriptor> referencedFunction =
                 bindingContext.get(RESOLVED_CALL, expression.getCallableReference());
         if (referencedFunction == null) return;
+
         JetType superType = getSuperTypeForClosure((FunctionDescriptor) referencedFunction.getResultingDescriptor(), true);
 
         String name = inventAnonymousClassName(expression);

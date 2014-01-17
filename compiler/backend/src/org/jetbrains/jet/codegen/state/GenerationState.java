@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,35 @@ import org.jetbrains.jet.codegen.binding.CodegenBinding;
 import org.jetbrains.jet.codegen.intrinsics.IntrinsicMethods;
 import org.jetbrains.jet.di.InjectorForJvmCodegen;
 import org.jetbrains.jet.lang.descriptors.ScriptDescriptor;
+import org.jetbrains.jet.lang.psi.JetClassOrObject;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.BindingContext;
 import org.jetbrains.jet.lang.resolve.BindingTrace;
 import org.jetbrains.jet.lang.resolve.DelegatingBindingTrace;
+import org.jetbrains.jet.util.slicedmap.ReadOnlySlice;
+import org.jetbrains.jet.util.slicedmap.WritableSlice;
 
 import java.util.List;
 
 public class GenerationState {
+    public interface GenerateClassFilter {
+        boolean shouldGenerate(JetClassOrObject classOrObject);
+
+        GenerateClassFilter ONLY_PACKAGE_CLASS = new GenerateClassFilter() {
+            @Override
+            public boolean shouldGenerate(JetClassOrObject classOrObject) {
+                return false;
+            }
+        };
+
+        GenerateClassFilter GENERATE_ALL = new GenerateClassFilter() {
+            @Override
+            public boolean shouldGenerate(JetClassOrObject classOrObject) {
+                return true;
+            }
+        };
+    }
+
     private boolean used = false;
 
     @NotNull
@@ -68,7 +89,7 @@ public class GenerationState {
 
     private final boolean generateNotNullParamAssertions;
 
-    private final boolean generateDeclaredClasses;
+    private final GenerateClassFilter generateDeclaredClasses;
 
     private final boolean inlineEnabled;
 
@@ -82,7 +103,7 @@ public class GenerationState {
             @NotNull List<JetFile> files,
             boolean inlineEnabled
     ) {
-        this(project, builderFactory, Progress.DEAF, bindingContext, files, true, false, true, inlineEnabled);
+        this(project, builderFactory, Progress.DEAF, bindingContext, files, true, false, GenerateClassFilter.GENERATE_ALL, inlineEnabled);
     }
 
     public GenerationState(
@@ -93,7 +114,7 @@ public class GenerationState {
             @NotNull List<JetFile> files,
             boolean generateNotNullAssertions,
             boolean generateNotNullParamAssertions,
-            boolean generateDeclaredClasses,
+            GenerateClassFilter generateDeclaredClasses,
             boolean inlineEnabled
     ) {
         this.project = project;
@@ -102,7 +123,26 @@ public class GenerationState {
         this.classBuilderMode = builderFactory.getClassBuilderMode();
         this.inlineEnabled = inlineEnabled;
 
-        bindingTrace = new DelegatingBindingTrace(bindingContext, "trace in GenerationState");
+        bindingTrace = new DelegatingBindingTrace(bindingContext, "trace in GenerationState") {
+            @Override
+            public <K, V> void record(WritableSlice<K, V> slice, K key, V value) {
+                // System.out.println("Record: " + slice + " key " + key + " value " + value);
+                super.record(slice, key, value);
+            }
+
+            @Override
+            public <K> void record(WritableSlice<K, Boolean> slice, K key) {
+                // System.out.println("Record: " + slice + " key " + key);
+                super.record(slice, key);
+            }
+
+            @Override
+            public <K, V> V get(ReadOnlySlice<K, V> slice, K key) {
+                // System.out.println("Read: " + slice + " key " + key);
+                return super.get(slice, key);
+            }
+        };
+
         this.bindingContext = bindingTrace.getBindingContext();
 
         this.typeMapper = new JetTypeMapper(bindingTrace, classBuilderMode);
@@ -175,7 +215,7 @@ public class GenerationState {
         return generateNotNullParamAssertions;
     }
 
-    public boolean isGenerateDeclaredClasses() {
+    public GenerateClassFilter getGenerateDeclaredClassFilter() {
         return generateDeclaredClasses;
     }
 
@@ -187,7 +227,7 @@ public class GenerationState {
         markUsed();
 
         //noinspection unchecked
-        CodegenBinding.initTrace(getBindingTrace(), getFiles());
+        CodegenBinding.initTrace(getBindingTrace(), getFiles(), getGenerateDeclaredClassFilter());
     }
 
     private void markUsed() {

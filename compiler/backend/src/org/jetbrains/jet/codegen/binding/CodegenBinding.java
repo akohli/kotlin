@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.asm4.Type;
+import org.jetbrains.jet.codegen.state.GenerationState;
 import org.jetbrains.jet.lang.descriptors.*;
 import org.jetbrains.jet.lang.descriptors.impl.ClassDescriptorImpl;
 import org.jetbrains.jet.lang.psi.*;
@@ -59,8 +60,8 @@ public class CodegenBinding {
     private CodegenBinding() {
     }
 
-    public static void initTrace(BindingTrace bindingTrace, Collection<JetFile> files) {
-        CodegenAnnotatingVisitor visitor = new CodegenAnnotatingVisitor(bindingTrace);
+    public static void initTrace(BindingTrace bindingTrace, Collection<JetFile> files, GenerationState.GenerateClassFilter filter) {
+        CodegenAnnotatingVisitor visitor = new CodegenAnnotatingVisitor(bindingTrace, filter);
         for (JetFile file : allFilesInPackages(bindingTrace.getBindingContext(), files)) {
             file.accept(visitor);
         }
