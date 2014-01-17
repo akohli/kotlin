@@ -41,7 +41,18 @@ public class IDEClassFileFinder implements ClassFileFinder {
     public VirtualFile find(@NotNull String internalName) {
         JavaFileManager fileFinder = ServiceManager.getService(project, JavaFileManager.class);
 
-        PsiClass psiClass = fileFinder.findClass(internalName.replace('/', '.'), GlobalSearchScope.allScope(project));
+        String qName = internalName.replace('/', '.');
+        PsiClass psiClass = fileFinder.findClass(qName, GlobalSearchScope.allScope(project));
+        if (psiClass == null) {
+            int dollarIndex = qName.indexOf('$');
+            String newName = qName.substring(0, dollarIndex);
+            psiClass = fileFinder.findClass(newName, GlobalSearchScope.allScope(project));
+            if (psiClass != null) {
+                int i = qName.lastIndexOf('.');
+                VirtualFile child = psiClass.getContainingFile().getVirtualFile().getParent().findChild((i < 0 ? qName : qName.substring(i + 1)) + ".class");
+                return child;
+            }
+        }
         if (psiClass != null) {
             return psiClass.getContainingFile().getVirtualFile();
         }
