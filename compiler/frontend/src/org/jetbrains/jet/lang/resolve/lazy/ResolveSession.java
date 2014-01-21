@@ -191,6 +191,7 @@ public class ResolveSession implements KotlinCodeAnalyzer {
         return specialClasses.apply(fqName);
     }
 
+    @NotNull
     @Override
     public ModuleDescriptor getModuleDescriptor() {
         return module;
