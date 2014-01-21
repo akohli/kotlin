@@ -2389,6 +2389,10 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
                     StackValue value = gen(argumentExpression);
                     if (inliner.shouldPutValue(parameterType, value, context, valueParameter)) {
                         value.put(parameterType, v);
+                    } else {
+                        if (value instanceof StackValue.Field) {
+                            v.pop();
+                        }
                     }
                     valueIfPresent = value;
                 }
