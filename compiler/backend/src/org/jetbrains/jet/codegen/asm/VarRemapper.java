@@ -101,10 +101,10 @@ public abstract class VarRemapper {
         if (remap instanceof StackValue.Local) {
             mv.visitVarInsn(opcode, ((StackValue.Local) remap).index);
         } else {
-            Type stub = Type.getObjectType("STUB");
-            String descriptor = stub.getDescriptor();
-
-            mv.visitFieldInsn(Opcodes.GETSTATIC, stub.getInternalName(), "$$$this$skip", descriptor);
+            //Type stub = Type.getObjectType("STUB");
+            //String descriptor = stub.getDescriptor();
+            //
+            //mv.visitFieldInsn(Opcodes.GETSTATIC, stub.getInternalName(), "$$$this$skip", descriptor);
             remap.put(remap.type, mv);
         }
     }
