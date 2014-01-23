@@ -272,7 +272,7 @@ public class InlineCodegen implements ParentCodegenAware, Inliner {
         boolean shouldPut = false == (stackValue != null && stackValue instanceof StackValue.Local);
         if (shouldPut) {
             //we could recapture field of anonymous objects cause they couldn't change
-            if (stackValue instanceof StackValue.Field && codegen.getContext().getContextDescriptor() instanceof AnonymousFunctionDescriptor) {
+            if ((stackValue instanceof StackValue.Extension || stackValue instanceof StackValue.Field) && codegen.getContext().getContextDescriptor() instanceof AnonymousFunctionDescriptor) {
                 if (descriptor != null && !InlineUtil.hasNoinlineAnnotation(descriptor)) {
                     //check type of context
                     return false;
