@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.java.stubs.PsiClassStub;
 import com.intellij.psi.impl.light.LightTypeParameterListBuilder;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.stubs.PsiFileStub;
-import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.asJava.impl.KotlinLightClassFactory;
 import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.java.JvmAbi;
 import org.jetbrains.jet.lang.resolve.java.PackageClassUtils;
@@ -110,22 +107,6 @@ public class LightClassUtil {
         catch (MalformedURLException e) {
             throw new AssertionError(e);
         }
-    }
-
-    @Nullable
-    /*package*/ static PsiClass findClass(@NotNull FqName fqn, @NotNull StubElement<?> stub) {
-        if (stub instanceof PsiClassStub && Comparing.equal(fqn.asString(), ((PsiClassStub) stub).getQualifiedName())) {
-            return (PsiClass) stub.getPsi();
-        }
-
-        if (stub instanceof PsiClassStub || stub instanceof PsiFileStub) {
-            for (StubElement child : stub.getChildrenStubs()) {
-                PsiClass answer = findClass(fqn, child);
-                if (answer != null) return answer;
-            }
-        }
-
-        return null;
     }
 
     @Nullable
@@ -286,24 +267,6 @@ public class LightClassUtil {
         }
 
         return new PropertyAccessorsPsiMethods(getterWrapper, setterWrapper);
-    }
-
-    @NotNull
-    public static PsiTypeParameterList buildLightTypeParameterList(
-            PsiTypeParameterListOwner owner,
-            JetDeclaration declaration) {
-        LightTypeParameterListBuilder builder = new LightTypeParameterListBuilder(owner.getManager(), owner.getLanguage());
-        if (declaration instanceof JetTypeParameterListOwner) {
-            JetTypeParameterListOwner typeParameterListOwner = (JetTypeParameterListOwner) declaration;
-            List<JetTypeParameter> parameters = typeParameterListOwner.getTypeParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                JetTypeParameter jetTypeParameter = parameters.get(i);
-                String name = jetTypeParameter.getName();
-                String safeName = name == null ? "__no_name__" : name;
-                builder.addParameter(new KotlinLightTypeParameter(owner, i, safeName));
-            }
-        }
-        return builder;
     }
 
     public static class PropertyAccessorsPsiMethods implements Iterable<PsiMethod> {

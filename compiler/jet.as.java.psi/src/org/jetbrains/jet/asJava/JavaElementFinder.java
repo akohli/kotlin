@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.intellij.util.SmartList;
 import com.intellij.util.containers.SLRUCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.asJava.impl.KotlinLightClassFactory;
 import org.jetbrains.jet.codegen.PackageCodegen;
 import org.jetbrains.jet.lang.psi.JetClassOrObject;
 import org.jetbrains.jet.lang.psi.JetEnumEntry;
@@ -146,13 +147,13 @@ public class JavaElementFinder extends PsiElementFinder implements JavaPsiFacade
         Collection<JetFile> filesForPackage = lightClassGenerationSupport.findFilesForPackage(qualifiedName, scope);
 
         if (!filesForPackage.isEmpty() && PackageCodegen.shouldGeneratePackageClass(filesForPackage)) {
-            KotlinLightClassForPackage lightClass = KotlinLightClassForPackage.create(psiManager, qualifiedName, scope, filesForPackage);
+            KotlinLightClass lightClass = KotlinLightClassFactory.instance$.createForPackage(psiManager, qualifiedName, scope, filesForPackage);
             if (lightClass != null) {
                 answer.add(lightClass);
 
                 if (filesForPackage.size() > 1) {
                     for (JetFile file : filesForPackage) {
-                        FakeLightClassForFileOfPackage fakeLightClass = new FakeLightClassForFileOfPackage(psiManager, lightClass, file);
+                        PsiClass fakeLightClass = KotlinLightClassFactory.instance$.createFakeForPackage(psiManager, lightClass, file);
                         answer.add(fakeLightClass);
                     }
                 }
@@ -191,7 +192,7 @@ public class JavaElementFinder extends PsiElementFinder implements JavaPsiFacade
         // allScope() because the contract says that the whole project
         GlobalSearchScope allScope = GlobalSearchScope.allScope(project);
         if (lightClassGenerationSupport.packageExists(fqName, allScope)) {
-            return new JetLightPackage(psiManager, fqName, allScope);
+            return KotlinLightClassFactory.instance$.createPackage(psiManager, fqName, allScope);
         }
 
         return null;
@@ -207,7 +208,7 @@ public class JavaElementFinder extends PsiElementFinder implements JavaPsiFacade
         Collection<PsiPackage> answer = Collections2.transform(subpackages, new Function<FqName, PsiPackage>() {
             @Override
             public PsiPackage apply(@Nullable FqName input) {
-                return new JetLightPackage(psiManager, input, scope);
+                return KotlinLightClassFactory.instance$.createPackage(psiManager, input, scope);
             }
         });
 

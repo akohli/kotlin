@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.asJava;
+package org.jetbrains.jet.asJava.impl;
 
 import com.intellij.lang.Language;
 import com.intellij.psi.PsiClass;
@@ -23,18 +23,20 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.light.AbstractLightClass;
-import org.jetbrains.jet.asJava.light.LightField;
 import com.intellij.psi.impl.light.LightMethod;
 import com.intellij.psi.impl.source.ClassInnerStuffCache;
 import com.intellij.psi.impl.source.PsiExtensibleClass;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jet.asJava.ClsWrapperStubPsiFactory;
+import org.jetbrains.jet.asJava.KotlinLightClass;
+import org.jetbrains.jet.asJava.light.LightField;
 import org.jetbrains.jet.lang.psi.JetDeclaration;
 
 import java.util.List;
 
-public abstract class KotlinWrappingLightClass extends AbstractLightClass implements KotlinLightClass, PsiExtensibleClass {
+/* package */ abstract class KotlinWrappingLightClass extends AbstractLightClass implements KotlinLightClass, PsiExtensibleClass {
     private final ClassInnerStuffCache myInnersCache = new ClassInnerStuffCache(this);
 
     protected KotlinWrappingLightClass(PsiManager manager, Language language) {

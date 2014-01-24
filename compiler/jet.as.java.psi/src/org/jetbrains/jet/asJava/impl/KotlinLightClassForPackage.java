@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.asJava;
+package org.jetbrains.jet.asJava.impl;
 
 import com.google.common.collect.Sets;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProviders;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.java.stubs.PsiJavaFileStub;
 import com.intellij.psi.impl.light.LightEmptyImplementsList;
 import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -30,6 +31,8 @@ import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.asJava.KotlinJavaFileStubProvider;
+import org.jetbrains.jet.asJava.KotlinPackageLightClassData;
 import org.jetbrains.jet.lang.psi.JetClassOrObject;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.java.PackageClassUtils;
@@ -52,7 +55,7 @@ public class KotlinLightClassForPackage extends KotlinWrappingLightClass impleme
     private final PsiModifierList modifierList;
     private final LightEmptyImplementsList implementsList;
 
-    private KotlinLightClassForPackage(
+    /* package */ KotlinLightClassForPackage(
             @NotNull PsiManager manager,
             @NotNull FqName packageFqName,
             @NotNull GlobalSearchScope searchScope,
@@ -70,19 +73,6 @@ public class KotlinLightClassForPackage extends KotlinWrappingLightClass impleme
         KotlinJavaFileStubProvider<KotlinPackageLightClassData> stubProvider =
                 KotlinJavaFileStubProvider.createForPackageClass(getProject(), packageFqName, searchScope);
         this.javaFileStub = CachedValuesManager.getManager(getProject()).createCachedValue(stubProvider, /*trackValue = */false);
-    }
-
-    @Nullable
-    public static KotlinLightClassForPackage create(
-            @NotNull PsiManager manager,
-            @NotNull FqName qualifiedName,
-            @NotNull GlobalSearchScope searchScope,
-            @NotNull Collection<JetFile> files // this is redundant, but computing it multiple times is costly
-    ) {
-        for (JetFile file : files) {
-            if (LightClassUtil.belongsToKotlinBuiltIns(file)) return null;
-        }
-        return new KotlinLightClassForPackage(manager, qualifiedName, searchScope, files);
     }
 
     private static boolean allValid(Collection<JetFile> files) {
@@ -272,7 +262,8 @@ public class KotlinLightClassForPackage extends KotlinWrappingLightClass impleme
     @NotNull
     @Override
     public PsiClass getDelegate() {
-        PsiClass psiClass = LightClassUtil.findClass(packageClassFqName, javaFileStub.getValue().getJavaFileStub());
+        PsiJavaFileStub fileStub = javaFileStub.getValue().getJavaFileStub();
+        PsiClass psiClass = KotlinLightClassFactory.instance$.findClass(packageClassFqName, fileStub);
         if (psiClass == null) {
             throw new IllegalStateException("Package class was not found " + packageFqName);
         }

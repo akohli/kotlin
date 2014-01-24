@@ -334,8 +334,12 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements LazyEnti
 
     private void doForceResolveAllContents() {
         ForceResolveUtil.forceResolveAllContents(getAnnotations());
-        getClassObjectDescriptor();
-        ForceResolveUtil.forceResolveAllContents(getClassObjectDescriptor());
+
+        ClassDescriptor classObjectDescriptor = getClassObjectDescriptor();
+        if (classObjectDescriptor != null) {
+            ForceResolveUtil.forceResolveAllContents(classObjectDescriptor);
+        }
+
         getClassObjectType();
         ForceResolveUtil.forceResolveAllContents(getConstructors());
         getContainingDeclaration();
@@ -398,20 +402,22 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements LazyEnti
                 }
         );
 
-        private final NotNullLazyValue<List<TypeParameterDescriptor>> parameters = resolveSession.getStorageManager().createLazyValue(new Function0<List<TypeParameterDescriptor>>() {
-            @Override
-            public List<TypeParameterDescriptor> invoke() {
-                JetClassLikeInfo classInfo = declarationProvider.getOwnerInfo();
-                List<JetTypeParameter> typeParameters = classInfo.getTypeParameters();
+        private final NotNullLazyValue<List<TypeParameterDescriptor>> parameters = resolveSession.getStorageManager().createLazyValue(
+                new Function0<List<TypeParameterDescriptor>>() {
+                    @Override
+                    public List<TypeParameterDescriptor> invoke() {
+                        JetClassLikeInfo classInfo = declarationProvider.getOwnerInfo();
+                        List<JetTypeParameter> typeParameters = classInfo.getTypeParameters();
 
-                List<TypeParameterDescriptor> parameters = new ArrayList<TypeParameterDescriptor>(typeParameters.size());
-                for (int i = 0; i < typeParameters.size(); i++) {
-                    parameters.add(new LazyTypeParameterDescriptor(resolveSession, LazyClassDescriptor.this, typeParameters.get(i), i));
-                }
+                        List<TypeParameterDescriptor> parameters = new ArrayList<TypeParameterDescriptor>(typeParameters.size());
+                        for (int i = 0; i < typeParameters.size(); i++) {
+                            parameters.add(new LazyTypeParameterDescriptor(resolveSession, LazyClassDescriptor.this, typeParameters.get(i),
+                                                                           i));
+                        }
 
-                return parameters;
-            }
-        });
+                        return parameters;
+                    }
+                });
 
         private final NullableLazyValue<Void> forceResolveAllContents =
                 resolveSession.getStorageManager().createRecursionTolerantNullableLazyValue(new Function0<Void>() {

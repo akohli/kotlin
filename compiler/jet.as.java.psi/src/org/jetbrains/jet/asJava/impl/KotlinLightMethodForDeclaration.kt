@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.asJava
+package org.jetbrains.jet.asJava.impl
 
 import com.intellij.psi.impl.light.LightMethod
 import com.intellij.psi.PsiClass
@@ -40,9 +40,13 @@ import org.jetbrains.jet.lang.psi.JetProperty
 import com.intellij.psi.PsiTypeParameter
 import org.jetbrains.jet.lang.psi.JetClassOrObject
 import com.intellij.psi.impl.light.LightTypeParameterListBuilder
+import org.jetbrains.jet.asJava.impl.KotlinLightClassFactory
 
-public class KotlinLightMethodForDeclaration(
-        manager: PsiManager, override val delegate: PsiMethod, override val origin: JetDeclaration, containingClass: PsiClass
+class KotlinLightMethodForDeclaration(
+        manager: PsiManager,
+        override val delegate: PsiMethod,
+        override val origin: JetDeclaration,
+        containingClass: PsiClass
 ): LightMethod(manager, delegate, containingClass), KotlinLightMethod {
 
     private val paramsList: CachedValue<PsiParameterList> by Delegates.blockingLazy {
@@ -51,7 +55,7 @@ public class KotlinLightMethodForDeclaration(
             val parameterBuilder = LightParameterListBuilder(getManager(), JetLanguage.INSTANCE)
 
             for ((index, parameter) in delegate.getParameterList().getParameters().withIndices()) {
-                parameterBuilder.addParameter(KotlinLightParameter(parameter, index, this))
+                parameterBuilder.addParameter(KotlinLightClassFactory.createLightParameter(parameter, index, this))
             }
 
             CachedValueProvider.Result.create(parameterBuilder, PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
@@ -67,7 +71,7 @@ public class KotlinLightMethodForDeclaration(
                 LightTypeParameterListBuilder(getManager(), getLanguage())
             }
             else {
-                LightClassUtil.buildLightTypeParameterList(this@KotlinLightMethodForDeclaration, origin)
+                KotlinLightClassFactory.createLightTypeParameterList(this, origin)
             }
             CachedValueProvider.Result.create(list, PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
         }, false)

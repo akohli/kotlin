@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.asJava;
+package org.jetbrains.jet.asJava.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProviders;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,20 +32,20 @@ import com.intellij.psi.impl.light.LightClass;
 import com.intellij.psi.impl.light.LightMethod;
 import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.stubs.PsiClassHolderFileStub;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jet.codegen.binding.PsiCodegenPredictor;
+import org.jetbrains.jet.asJava.KotlinLightClass;
+import org.jetbrains.jet.asJava.LightClassDataForKotlinClass;
+import org.jetbrains.jet.asJava.LightClassUtil;
+import org.jetbrains.jet.asJava.OutermostKotlinClassLightClassData;
 import org.jetbrains.jet.lang.descriptors.ClassDescriptor;
 import org.jetbrains.jet.lang.descriptors.ClassifierDescriptor;
 import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.DescriptorUtils;
-import org.jetbrains.jet.lang.resolve.java.JvmClassName;
 import org.jetbrains.jet.lang.resolve.java.jetAsJava.JetJavaMirrorMarker;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.FqNameUnsafe;
@@ -63,33 +62,6 @@ import java.util.List;
 import static org.jetbrains.jet.lexer.JetTokens.*;
 
 public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightClass implements JetJavaMirrorMarker {
-    private final static Key<CachedValue<OutermostKotlinClassLightClassData>> JAVA_API_STUB = Key.create("JAVA_API_STUB");
-
-    @Nullable
-    public static KotlinLightClassForExplicitDeclaration create(@NotNull PsiManager manager, @NotNull JetClassOrObject classOrObject) {
-        if (LightClassUtil.belongsToKotlinBuiltIns((JetFile) classOrObject.getContainingFile())) {
-            return null;
-        }
-
-        String jvmInternalName = getJvmInternalName(classOrObject);
-        if (jvmInternalName == null) return null;
-
-        FqName fqName = JvmClassName.byInternalName(jvmInternalName).getFqNameForClassNameWithoutDollars();
-
-        if (classOrObject instanceof JetObjectDeclaration && ((JetObjectDeclaration) classOrObject).isObjectLiteral()) {
-            return new KotlinLightClassForAnonymousDeclaration(manager, fqName, classOrObject);
-        }
-        return new KotlinLightClassForExplicitDeclaration(manager, fqName, classOrObject);
-    }
-
-    private static String getJvmInternalName(JetClassOrObject classOrObject) {
-        if (JetPsiUtil.isLocal(classOrObject)) {
-            LightClassDataForKotlinClass data = getLightClassDataExactly(classOrObject);
-            return data != null ? data.getJvmInternalName() : "";
-        }
-        return PsiCodegenPredictor.getPredefinedJvmInternalName(classOrObject);
-    }
-
     private final FqName classFqName; // FqName of (possibly inner) class
     protected final JetClassOrObject classOrObject;
     private PsiClass delegate;
@@ -184,11 +156,12 @@ public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightC
         @Nullable
         @Override
         protected PsiTypeParameterList compute() {
-            return LightClassUtil.buildLightTypeParameterList(KotlinLightClassForExplicitDeclaration.this, classOrObject);
+            return KotlinLightClassFactory.instance$.createLightTypeParameterList(
+                    KotlinLightClassForExplicitDeclaration.this, classOrObject);
         }
     };
 
-    KotlinLightClassForExplicitDeclaration(
+    /* package */ KotlinLightClassForExplicitDeclaration(
             @NotNull PsiManager manager,
             @NotNull FqName name,
             @NotNull JetClassOrObject classOrObject
@@ -222,9 +195,9 @@ public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightC
         if (delegate == null) {
             PsiJavaFileStub javaFileStub = getJavaFileStub();
 
-            PsiClass psiClass = LightClassUtil.findClass(classFqName, javaFileStub);
+            PsiClass psiClass = KotlinLightClassFactory.instance$.findClass(classFqName, javaFileStub);
             if (psiClass == null) {
-                JetClassOrObject outermostClassOrObject = getOutermostClassOrObject(classOrObject);
+                JetClassOrObject outermostClassOrObject = KotlinLightClassFactory.instance$.getOutermostClassOrObject(classOrObject);
                 throw new IllegalStateException("Class was not found " + classFqName + "\n" +
                                                 "in " + outermostClassOrObject.getContainingFile().getText() + "\n" +
                                                 "stub: \n" + javaFileStub.getPsi().getText());
@@ -242,41 +215,13 @@ public class KotlinLightClassForExplicitDeclaration extends KotlinWrappingLightC
 
     @Nullable
     protected final ClassDescriptor getDescriptor() {
-        LightClassDataForKotlinClass data = getLightClassDataExactly(classOrObject);
+        LightClassDataForKotlinClass data = KotlinLightClassFactory.instance$.getLightClassDataExactly(classOrObject);
         return data != null ? data.getDescriptor() : null;
     }
 
     @NotNull
     private OutermostKotlinClassLightClassData getLightClassData() {
-        return getLightClassData(classOrObject);
-    }
-
-    @NotNull
-    private static OutermostKotlinClassLightClassData getLightClassData(JetClassOrObject classOrObject) {
-        JetClassOrObject outermostClassOrObject = getOutermostClassOrObject(classOrObject);
-        return CachedValuesManager.getManager(classOrObject.getProject()).getCachedValue(
-                outermostClassOrObject,
-                JAVA_API_STUB,
-                KotlinJavaFileStubProvider.createForDeclaredClass(outermostClassOrObject),
-                /*trackValue = */false
-        );
-    }
-
-    @Nullable
-    private static LightClassDataForKotlinClass getLightClassDataExactly(JetClassOrObject classOrObject) {
-        OutermostKotlinClassLightClassData data = getLightClassData(classOrObject);
-        return data.getClassOrObject().equals(classOrObject) ? data : data.getAllInnerClasses().get(classOrObject);
-    }
-
-    @NotNull
-    private static JetClassOrObject getOutermostClassOrObject(@NotNull JetClassOrObject classOrObject) {
-        JetClassOrObject outermostClass = JetPsiUtil.getOutermostClassOrObject(classOrObject);
-        if (outermostClass == null) {
-            throw new IllegalStateException("Attempt to build a light class for a local class: " + classOrObject.getText());
-        }
-        else {
-            return outermostClass;
-        }
+        return KotlinLightClassFactory.instance$.getLightClassData(classOrObject);
     }
 
     private final NullableLazyValue<PsiFile> _containingFile = new NullableLazyValue<PsiFile>() {

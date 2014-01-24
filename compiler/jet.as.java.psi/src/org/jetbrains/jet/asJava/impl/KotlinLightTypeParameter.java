@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.asJava;
+package org.jetbrains.jet.asJava.impl;
 
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.AbstractLightClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.asJava.AsJavaPackage;
+import org.jetbrains.jet.asJava.KotlinLightClass;
 import org.jetbrains.jet.lang.psi.JetTypeParameter;
 import org.jetbrains.jet.lang.psi.JetTypeParameterListOwner;
 import org.jetbrains.jet.lang.resolve.java.jetAsJava.KotlinLightElement;
 import org.jetbrains.jet.lang.resolve.java.jetAsJava.KotlinLightMethod;
 import org.jetbrains.jet.plugin.JetLanguage;
 
-public class KotlinLightTypeParameter
+/* package */ class KotlinLightTypeParameter
         extends AbstractLightClass implements PsiTypeParameter, KotlinLightElement<JetTypeParameter, PsiTypeParameter> {
     private final PsiTypeParameterListOwner owner;
     private final int index;
     private final String name;
 
-    protected KotlinLightTypeParameter(
+    /* package */ KotlinLightTypeParameter(
             @NotNull PsiTypeParameterListOwner owner,
             int index,
             @NotNull String name) {

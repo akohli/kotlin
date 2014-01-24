@@ -1,0 +1,5 @@
+<root>
+  <item name='com.intellij.psi.stubs.StubElement java.util.List&lt;com.intellij.psi.stubs.StubElement&gt; getChildrenStubs()'>
+    <annotation name='org.jetbrains.annotations.NotNull'/>
+  </item>
+</root>

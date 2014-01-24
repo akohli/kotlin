@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.asJava;
+package org.jetbrains.jet.asJava.impl;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.file.PsiPackageImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jet.asJava.LightClassGenerationSupport;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 
 public class JetLightPackage extends PsiPackageImpl {
@@ -28,7 +29,7 @@ public class JetLightPackage extends PsiPackageImpl {
     private final FqName fqName;
     private final GlobalSearchScope scope;
 
-    public JetLightPackage(PsiManager manager, FqName qualifiedName, GlobalSearchScope scope) {
+    /* package */ JetLightPackage(PsiManager manager, FqName qualifiedName, GlobalSearchScope scope) {
         super(manager, qualifiedName.asString());
         this.fqName = qualifiedName;
         this.scope = scope;

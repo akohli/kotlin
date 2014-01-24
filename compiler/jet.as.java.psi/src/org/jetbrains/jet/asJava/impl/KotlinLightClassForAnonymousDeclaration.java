@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.asJava;
+package org.jetbrains.jet.asJava.impl;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -32,12 +32,12 @@ import org.jetbrains.jet.lang.types.JetType;
 
 import java.util.Collection;
 
-class KotlinLightClassForAnonymousDeclaration extends KotlinLightClassForExplicitDeclaration implements PsiAnonymousClass {
+/* package */ class KotlinLightClassForAnonymousDeclaration extends KotlinLightClassForExplicitDeclaration implements PsiAnonymousClass {
     private static final Logger LOG = Logger.getInstance(KotlinLightClassForAnonymousDeclaration.class);
 
     private SoftReference<PsiClassType> cachedBaseType = null;
 
-    KotlinLightClassForAnonymousDeclaration(@NotNull PsiManager manager, @NotNull FqName name, @NotNull JetClassOrObject classOrObject) {
+    /* package */ KotlinLightClassForAnonymousDeclaration(@NotNull PsiManager manager, @NotNull FqName name, @NotNull JetClassOrObject classOrObject) {
         super(manager, name, classOrObject);
     }
 
