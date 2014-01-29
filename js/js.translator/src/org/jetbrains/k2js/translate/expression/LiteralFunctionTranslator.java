@@ -26,7 +26,6 @@ import org.jetbrains.jet.lang.psi.JetClassBody;
 import org.jetbrains.jet.lang.psi.JetClassOrObject;
 import org.jetbrains.jet.lang.psi.JetDeclarationWithBody;
 import org.jetbrains.jet.lang.resolve.DescriptorUtils;
-import org.jetbrains.k2js.translate.LabelGenerator;
 import org.jetbrains.k2js.translate.context.AliasingContext;
 import org.jetbrains.k2js.translate.context.Namer;
 import org.jetbrains.k2js.translate.context.TranslationContext;
@@ -42,7 +41,6 @@ import static org.jetbrains.k2js.translate.utils.FunctionBodyTranslator.translat
 import static org.jetbrains.k2js.translate.utils.JsDescriptorUtils.getExpectedReceiverDescriptor;
 
 public class LiteralFunctionTranslator extends AbstractTranslator {
-    private static final LabelGenerator FUNCTION_NAME_GENERATOR = new LabelGenerator('f');
     private static final String CAPTURED_VALUE_FIELD = "v";
 
     private final JetDeclarationWithBody declaration;
@@ -119,7 +117,7 @@ public class LiteralFunctionTranslator extends AbstractTranslator {
             }
         }
         else {
-            JsNameRef funReference = context().define(getSuggestedName(), jsFunction);
+            JsNameRef funReference = context().define(getSuggestedName(functionContext, descriptor), jsFunction);
 
             InnerFunctionTranslator innerTranslator = new InnerFunctionTranslator(descriptor, functionContext, jsFunction, tempRef);
             result = innerTranslator.translate(funReference, context());
@@ -128,27 +126,6 @@ public class LiteralFunctionTranslator extends AbstractTranslator {
         addRegularParameters(descriptor, jsFunction, functionContext, receiverName);
 
         return result;
-    }
-
-    private String getSuggestedName() {
-        String suggestedName = "";
-        DeclarationDescriptor containingDeclaration = descriptor.getContainingDeclaration();
-        if (!(containingDeclaration instanceof ClassOrPackageFragmentDescriptor) &&
-            !(containingDeclaration instanceof AnonymousFunctionDescriptor)) {
-            suggestedName = functionContext.getNameForDescriptor(containingDeclaration).getIdent();
-        }
-
-        if (!suggestedName.isEmpty() && !suggestedName.endsWith("$")) {
-            suggestedName += "$";
-        }
-
-        if (descriptor instanceof AnonymousFunctionDescriptor) {
-            suggestedName += "f";
-        }
-        else {
-            suggestedName += functionContext.getNameForDescriptor(descriptor).getIdent();
-        }
-        return suggestedName;
     }
 
     @NotNull
@@ -215,6 +192,28 @@ public class LiteralFunctionTranslator extends AbstractTranslator {
         FunctionTranslator.addParameters(fun.getParameters(), descriptor, funContext);
     }
 
+    private static String getSuggestedName(TranslationContext context, DeclarationDescriptor descriptor) {
+        String suggestedName = "";
+        DeclarationDescriptor containingDeclaration = descriptor.getContainingDeclaration();
+        if (containingDeclaration != null &&
+            !(containingDeclaration instanceof ClassOrPackageFragmentDescriptor) &&
+            !(containingDeclaration instanceof AnonymousFunctionDescriptor)) {
+            suggestedName = context.getNameForDescriptor(containingDeclaration).getIdent();
+        }
+
+        if (!suggestedName.isEmpty() && !suggestedName.endsWith("$")) {
+            suggestedName += "$";
+        }
+
+        if (descriptor.getName().isSpecial()) {
+            suggestedName += "f";
+        }
+        else {
+            suggestedName += context.getNameForDescriptor(descriptor).getIdent();
+        }
+        return suggestedName;
+    }
+
     @NotNull
     public static JsVars translateLocalNamedFunction(@NotNull JetDeclarationWithBody declaration, @NotNull TranslationContext outerContext) {
         return new LiteralFunctionTranslator(declaration, outerContext).translateLocalNamedFunction();
@@ -245,7 +244,7 @@ public class LiteralFunctionTranslator extends AbstractTranslator {
         JetClassBody body = declaration.getBody();
         assert body != null;
 
-        JsNameRef define = funContext.define(FUNCTION_NAME_GENERATOR.generate(), fun);
+        JsNameRef define = funContext.define(getSuggestedName(funContext, descriptor), fun);
         return new InnerObjectTranslator(funContext, fun).translate(define, usageTracker.isUsed() ? outerClassRef : null);
     }
 }
