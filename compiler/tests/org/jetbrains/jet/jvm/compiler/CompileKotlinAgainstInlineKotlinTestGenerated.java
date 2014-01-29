@@ -131,6 +131,11 @@ public class CompileKotlinAgainstInlineKotlinTestGenerated extends AbstractCompi
         doBoxTest("compiler/testData/codegen/boxInline/noInline");
     }
     
+    @TestMetadata("noInlineLambdaX2")
+    public void testNoInlineLambdaX2() throws Exception {
+        doBoxTest("compiler/testData/codegen/boxInline/noInlineLambdaX2");
+    }
+    
     @TestMetadata("params")
     public void testParams() throws Exception {
         doBoxTest("compiler/testData/codegen/boxInline/params");
