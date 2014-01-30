@@ -144,8 +144,8 @@ public class InlineCodegenUtil {
             Type packageFragmentType = null;
             if (file == null) {
                 //in case package fragment clinit
-                if (codegenContext.getParentContext() instanceof PackageContext) {
-                    packageFragmentType = ((PackageContext) codegenContext.getParentContext()).getPackagePartType();
+                if (codegenContext instanceof PackageContext) {
+                    packageFragmentType = ((PackageContext) codegenContext).getPackagePartType();
                 }
             } else {
                 packageFragmentType =
