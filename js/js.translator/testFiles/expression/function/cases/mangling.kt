@@ -13,7 +13,7 @@ val internal_b = { internal_boo() + internal_boo(1) }
 
 
 public fun public_foo(): Int = 1
-native fun public_foo(a: Array<Int>) = "should be ingnored"
+native public fun public_foo(a: Array<Int>): String = "should be ingnored"
 public fun public_foo(i: Int): Int = 2
 
 public fun public_boo(i: Int): Int = 2
@@ -24,7 +24,7 @@ val public_f = { public_foo() + public_foo(1) }
 val public_b = { public_boo() + public_boo(1) }
 
 
-native fun private_foo(a: Array<Int>) = "should be ingnored"
+native private fun private_foo(a: Array<Int>): String = "should be ingnored"
 private fun private_foo(): Int = 1
 private fun private_foo(i: Int): Int = 2
 
