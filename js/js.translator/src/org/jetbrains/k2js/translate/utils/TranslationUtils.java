@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.lang.descriptors.*;
 import org.jetbrains.jet.lang.psi.*;
+import org.jetbrains.jet.lang.resolve.BindingContextUtils;
 import org.jetbrains.jet.lang.resolve.scopes.JetScope;
 import org.jetbrains.jet.lang.types.JetType;
 import org.jetbrains.k2js.translate.context.TemporaryConstVariable;
@@ -179,7 +180,7 @@ public final class TranslationUtils {
     }
 
     @NotNull
-    private static String getSimpleMangledName(@NotNull FunctionDescriptor descriptor) {
+    private static String getSimpleMangledName(@NotNull final FunctionDescriptor descriptor) {
         DeclarationDescriptor declaration = descriptor.getContainingDeclaration();
 
         JetScope jetScope = null;
@@ -193,13 +194,29 @@ public final class TranslationUtils {
         int counter = 0;
 
         if (jetScope != null) {
-            Collection<FunctionDescriptor> functions = jetScope.getFunctions(descriptor.getName());
-            List<FunctionDescriptor> overloadedFunctions = ContainerUtil.filter(functions, new Condition<FunctionDescriptor>() {
+            Collection<DeclarationDescriptor> declarations = jetScope.getAllDescriptors();
+            List<DeclarationDescriptor> filteredDeclarations = ContainerUtil.filter(declarations, new Condition<DeclarationDescriptor>() {
                 @Override
-                public boolean value(FunctionDescriptor descriptor) {
-                    return !needsStableMangling(descriptor) && !AnnotationsUtils.isNativeObject(descriptor);
+                public boolean value(DeclarationDescriptor declarationDescriptor) {
+                    if (!(declarationDescriptor instanceof FunctionDescriptor)) return false;
+
+                    FunctionDescriptor functionDescriptor = (FunctionDescriptor) declarationDescriptor;
+
+                    String name = AnnotationsUtils.getNameForAnnotatedObject(declarationDescriptor);
+
+                    if (name == null) {
+                        // when name == null it's mean that it's not native
+                        if (needsStableMangling(functionDescriptor)) return false;
+
+                        name = declarationDescriptor.getName().asString();
+                    }
+
+                    return descriptor.getName().asString().equals(name);
                 }
             });
+
+            @SuppressWarnings("unchecked")
+            List<FunctionDescriptor> overloadedFunctions = ContainerUtil.<DeclarationDescriptor, FunctionDescriptor>map(filteredDeclarations, Function.ID);
 
             if (overloadedFunctions.size() > 1) {
                 Collections.sort(overloadedFunctions, OVERLOADED_FUNCTION_COMPARATOR);
@@ -366,9 +383,25 @@ public final class TranslationUtils {
         return ensureNotNull;
     }
 
+    private static boolean isNative(FunctionDescriptor descriptor) {
+        Set<CallableMemberDescriptor> declarations = BindingContextUtils.getAllOverriddenDeclarations(descriptor);
+        for (CallableMemberDescriptor memberDescriptor : declarations) {
+            if (AnnotationsUtils.isNativeObject(memberDescriptor)) return true;
+        }
+        return false;
+    }
+
     private static class OverloadedFunctionComparator implements Comparator<FunctionDescriptor> {
         @Override
         public int compare(@NotNull FunctionDescriptor a, @NotNull FunctionDescriptor b) {
+            // native functions first
+            if (isNative(a)) {
+                if (!isNative(b)) return -1;
+            }
+            else if (isNative(b)) {
+                return 1;
+            }
+
             // be visibility
             // Actually "internal" > "private", but we want to have less number for "internal", so compare b with a instead of a with b.
             Integer result = Visibilities.compare(b.getVisibility(), a.getVisibility());

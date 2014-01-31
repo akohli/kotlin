@@ -339,9 +339,9 @@ public class BindingContextUtils {
     }
 
     @NotNull
-    public static Set<FunctionDescriptor> getAllOverriddenDeclarations(@NotNull FunctionDescriptor functionDescriptor) {
-        Set<FunctionDescriptor> result = Sets.newHashSet();
-        for (FunctionDescriptor overriddenDeclaration : functionDescriptor.getOverriddenDescriptors()) {
+    public static Set<CallableMemberDescriptor> getAllOverriddenDeclarations(@NotNull CallableMemberDescriptor memberDescriptor) {
+        Set<CallableMemberDescriptor> result = Sets.newHashSet();
+        for (CallableMemberDescriptor overriddenDeclaration : memberDescriptor.getOverriddenDescriptors()) {
             CallableMemberDescriptor.Kind kind = overriddenDeclaration.getKind();
             if (kind == DECLARATION) {
                 result.add(overriddenDeclaration);
