@@ -41,6 +41,10 @@ public abstract class KotlinWrappingLightClass extends AbstractLightClass implem
         super(manager, language);
     }
 
+    @NotNull
+    @Override
+    public abstract PsiClass getDelegate();
+
     @Override
     @NotNull
     public PsiField[] getFields() {
