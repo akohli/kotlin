@@ -111,7 +111,7 @@ public class BytecodeToolWindow extends JPanel implements Disposable {
                 }
                 state = new GenerationState(jetFile.getProject(), ClassBuilderFactories.TEXT, Progress.DEAF, exhaust.getBindingContext(),
                                             Collections.singletonList(jetFile), true, true, true,
-                                            InlineUtil.DEFAULT_INLINE_FLAG_FOR_TOOLWINDOW /*TODO add checkbox or extract it from option*/);
+                                            true /*TODO add checkbox or extract it from option*/);
                 KotlinCodegenFacade.compileCorrectFiles(state, CompilationErrorHandler.THROW_EXCEPTION);
             }
             catch (ProcessCanceledException e) {
