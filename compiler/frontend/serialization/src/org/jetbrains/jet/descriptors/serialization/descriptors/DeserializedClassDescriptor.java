@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.descriptors.serialization.*;
 import org.jetbrains.jet.lang.descriptors.*;
-import org.jetbrains.jet.lang.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.jet.lang.descriptors.annotations.Annotations;
 import org.jetbrains.jet.lang.descriptors.impl.AbstractClassDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.ConstructorDescriptorImpl;
@@ -263,9 +262,10 @@ public class DeserializedClassDescriptor extends AbstractClassDescriptor impleme
 
     @NotNull
     private MutableClassDescriptor createEnumClassObject() {
-        MutableClassDescriptor classObject = new MutableClassDescriptor(this, getScopeForMemberLookup(), ClassKind.CLASS_OBJECT,
-                                                                        false, getClassObjectName(getName()));
-        classObject.setSupertypes(Collections.singleton(KotlinBuiltIns.getInstance().getAnyType()));
+        final MutableClassDescriptor classObject = new MutableClassDescriptor(this, getScopeForMemberLookup(), ClassKind.CLASS_OBJECT,
+                                                                              false, getClassObjectName(getName()));
+        JetType supertype = KotlinBuiltIns.getInstance().getAnyType();
+        classObject.setSupertypes(Collections.singleton(supertype));
         classObject.setModality(Modality.FINAL);
         classObject.setVisibility(DescriptorUtils.getSyntheticClassObjectVisibility());
         classObject.setTypeParameterDescriptors(Collections.<TypeParameterDescriptor>emptyList());
@@ -276,6 +276,34 @@ public class DeserializedClassDescriptor extends AbstractClassDescriptor impleme
         JetType enumArrayType = KotlinBuiltIns.getInstance().getArrayType(enumType);
         classObject.getBuilder().addFunctionDescriptor(DescriptorFactory.createEnumClassObjectValuesMethod(classObject, enumArrayType));
         classObject.getBuilder().addFunctionDescriptor(DescriptorFactory.createEnumClassObjectValueOfMethod(classObject, enumType));
+
+        OverridingUtil.DescriptorSink sink = new OverridingUtil.DescriptorSink() {
+            @Override
+            public void addToScope(@NotNull CallableMemberDescriptor fakeOverride) {
+                OverridingUtil.resolveUnknownVisibilityForMember(fakeOverride, new OverridingUtil.NotInferredVisibilitySink() {
+                    @Override
+                    public void cannotInferVisibility(@NotNull CallableMemberDescriptor descriptor) {
+                        throw new IllegalStateException("Cannot infer visibility for " + descriptor + " in " + classObject);
+                    }
+                });
+                classObject.getBuilder().addFunctionDescriptor((SimpleFunctionDescriptor) fakeOverride);
+            }
+
+            @Override
+            public void conflict(@NotNull CallableMemberDescriptor fromSuper, @NotNull CallableMemberDescriptor fromCurrent) {
+                throw new IllegalStateException("Conflict on enum class object override: " + fromSuper + " vs " + fromCurrent);
+            }
+        };
+
+        JetScope superScope = supertype.getMemberScope();
+
+        for (DeclarationDescriptor descriptor : superScope.getAllDescriptors()) {
+            if (descriptor instanceof FunctionDescriptor) {
+                Name name = descriptor.getName();
+                OverridingUtil.generateOverridesInFunctionGroup(name, superScope.getFunctions(name),
+                                                                Collections.<FunctionDescriptor>emptySet(), classObject, sink);
+            }
+        }
 
         return classObject;
     }
