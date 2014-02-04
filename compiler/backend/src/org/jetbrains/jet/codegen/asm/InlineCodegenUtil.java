@@ -243,4 +243,9 @@ public class InlineCodegenUtil {
         }
         return null;
     }
+
+    @NotNull
+    public static MaxCalcNode wrapWithMaxLocalCalc(@NotNull MethodNode methodNode) {
+        return new MaxCalcNode(methodNode);
+    }
 }
