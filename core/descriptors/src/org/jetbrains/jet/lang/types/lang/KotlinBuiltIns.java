@@ -893,6 +893,11 @@ public class KotlinBuiltIns {
 
     // Recognized & special
 
+    public static boolean isSpecialClassWithNoSupertypes(@NotNull ClassDescriptor descriptor) {
+        String fqName = DescriptorUtils.getFqName(descriptor).asString();
+        return "jet.Any".equals(fqName) || "jet.Nothing".equals(fqName);
+    }
+
     public boolean isNothing(@NotNull JetType type) {
         return isNothingOrNullableNothing(type)
                && !type.isNullable();
