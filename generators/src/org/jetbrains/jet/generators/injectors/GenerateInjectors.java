@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,12 @@ import org.jetbrains.jet.lang.resolve.*;
 import org.jetbrains.jet.lang.resolve.calls.CallResolver;
 import org.jetbrains.jet.lang.resolve.calls.CallResolverExtensionProvider;
 import org.jetbrains.jet.lang.resolve.java.JavaClassFinderImpl;
+import org.jetbrains.jet.lang.resolve.java.JavaClassFinderPackageManager;
 import org.jetbrains.jet.lang.resolve.java.JavaDescriptorResolver;
 import org.jetbrains.jet.lang.resolve.java.mapping.JavaToKotlinClassMap;
 import org.jetbrains.jet.lang.resolve.java.resolver.*;
 import org.jetbrains.jet.lang.resolve.kotlin.VirtualFileFinder;
+import org.jetbrains.jet.lang.resolve.lazy.ExternallyDeclaredPackageManager;
 import org.jetbrains.jet.lang.resolve.lazy.ResolveSession;
 import org.jetbrains.jet.lang.resolve.lazy.declarations.DeclarationProviderFactory;
 import org.jetbrains.jet.lang.types.DependencyClassByQualifiedNameResolverDummyImpl;
@@ -79,7 +81,8 @@ public class GenerateInjectors {
                 generateTestInjector(),
                 generateInjectorForJvmCodegen(),
                 generateInjectorForLazyResolve(),
-                generateInjectorForBodyResolve()
+                generateInjectorForBodyResolve(),
+                generateInjectorForLazyResolveWithJava()
         );
     }
 
@@ -91,14 +94,52 @@ public class GenerateInjectors {
         generator.addParameter(ModuleDescriptorImpl.class);
         generator.addParameter(DeclarationProviderFactory.class);
         generator.addParameter(BindingTrace.class);
+        generator.addParameter(ExternallyDeclaredPackageManager.class);
 
         generator.addPublicField(ResolveSession.class);
 
         generator.addField(CallResolverExtensionProvider.class);
-        generator.addField(false, StorageManager.class, null, new GivenExpression("resolveSession.getStorageManager()"));
+        generator.addField(false, StorageManager.class, null, new GivenExpression("globalContext.getStorageManager()"));
         generator.addField(false, PlatformToKotlinClassMap.class, null, new GivenExpression("moduleDescriptor.getPlatformToKotlinClassMap()"));
 
         generator.configure("compiler/frontend/src", "org.jetbrains.jet.di", "InjectorForLazyResolve", GenerateInjectors.class);
+        return generator;
+    }
+
+    private static DependencyInjectorGenerator generateInjectorForLazyResolveWithJava() throws IOException {
+        DependencyInjectorGenerator generator = new DependencyInjectorGenerator();
+
+        // Parameters
+        generator.addParameter(Project.class);
+        generator.addParameter(GlobalContextImpl.class);
+        generator.addParameter(DeclarationProviderFactory.class);
+        generator.addParameter(BindingTrace.class);
+
+        // Fields
+        generator.addPublicField(ResolveSession.class);
+        generator.addPublicField(JavaDescriptorResolver.class);
+
+        generator.addField(false, StorageManager.class, null, new GivenExpression("globalContext.getStorageManager()"));
+        generator.addField(JavaClassFinderPackageManager.class);
+        generator.addField(CallResolverExtensionProvider.class);
+        generator.addField(JavaClassFinderImpl.class);
+        generator.addField(TraceBasedExternalSignatureResolver.class);
+        generator.addField(LazyResolveBasedCache.class);
+        generator.addField(TraceBasedErrorReporter.class);
+        generator.addField(PsiBasedMethodSignatureChecker.class);
+        generator.addField(PsiBasedExternalAnnotationResolver.class);
+
+        generator.addField(false, PlatformToKotlinClassMap.class, null, new GivenExpression("module.getPlatformToKotlinClassMap()"));
+
+        generator.addField(false, JavaPackageFragmentProvider.class, null, new GivenExpression("javaDescriptorResolver.getPackageFragmentProvider()"));
+        generator.addField(false, VirtualFileFinder.class, "virtualFileFinder",
+                           new GivenExpression(VirtualFileFinder.class.getName() + ".SERVICE.getInstance(project)"));
+
+        generator.addField(true, ModuleDescriptorImpl.class, "module",
+                           new GivenExpression("org.jetbrains.jet.lang.resolve.java.AnalyzerFacadeForJVM.createJavaModule(\"<fake-jdr-module>\")"));
+
+        generator.configure("compiler/frontend.java/src", "org.jetbrains.jet.di", "InjectorForLazyResolveWithJava",
+                            GenerateInjectors.class);
         return generator;
     }
 

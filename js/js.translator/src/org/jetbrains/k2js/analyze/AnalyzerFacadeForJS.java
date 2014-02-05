@@ -35,9 +35,9 @@ import org.jetbrains.jet.lang.descriptors.ModuleDescriptor;
 import org.jetbrains.jet.lang.descriptors.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.*;
+import org.jetbrains.jet.lang.resolve.lazy.ExternallyDeclaredPackageManager;
 import org.jetbrains.jet.lang.resolve.lazy.ResolveSession;
 import org.jetbrains.jet.lang.resolve.lazy.declarations.FileBasedDeclarationProviderFactory;
-import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.Name;
 import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
 import org.jetbrains.k2js.config.Config;
@@ -166,7 +166,8 @@ public final class AnalyzerFacadeForJS {
                 globalContext,
                 module,
                 declarationProviderFactory,
-                new BindingTraceContext()).getResolveSession();
+                new BindingTraceContext(),
+                ExternallyDeclaredPackageManager.NO_EXTERNAL_PACKAGES).getResolveSession();
     }
 
     @NotNull

@@ -33,6 +33,7 @@ import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.*;
 import org.jetbrains.jet.lang.resolve.lazy.data.JetClassLikeInfo;
 import org.jetbrains.jet.lang.resolve.lazy.declarations.DeclarationProviderFactory;
+import org.jetbrains.jet.lang.resolve.lazy.declarations.EmptyPackageMemberDeclarationProvider;
 import org.jetbrains.jet.lang.resolve.lazy.declarations.PackageMemberDeclarationProvider;
 import org.jetbrains.jet.lang.resolve.lazy.descriptors.LazyClassDescriptor;
 import org.jetbrains.jet.lang.resolve.lazy.descriptors.LazyPackageDescriptor;
@@ -77,8 +78,9 @@ public class ResolveSession implements KotlinCodeAnalyzer {
     private final MemoizedFunctionToNullable<FqName, LazyPackageDescriptor> packages;
     private final PackageFragmentProvider packageFragmentProvider;
 
-    private ScopeProvider scopeProvider;
+    private final ExternallyDeclaredPackageManager externalPackageManager;
 
+    private ScopeProvider scopeProvider;
     private JetImportsFactory jetImportFactory;
     private AnnotationResolver annotationResolve;
     private DescriptorResolver descriptorResolver;
@@ -122,7 +124,8 @@ public class ResolveSession implements KotlinCodeAnalyzer {
             @NotNull GlobalContextImpl globalContext,
             @NotNull ModuleDescriptorImpl rootDescriptor,
             @NotNull DeclarationProviderFactory declarationProviderFactory,
-            @NotNull BindingTrace delegationTrace
+            @NotNull BindingTrace delegationTrace,
+            @NotNull ExternallyDeclaredPackageManager externalPackageManager
     ) {
         LockBasedLazyResolveStorageManager lockBasedLazyResolveStorageManager = new LockBasedLazyResolveStorageManager(globalContext.getStorageManager());
         this.storageManager = lockBasedLazyResolveStorageManager;
@@ -142,6 +145,7 @@ public class ResolveSession implements KotlinCodeAnalyzer {
         });
 
         this.declarationProviderFactory = declarationProviderFactory;
+        this.externalPackageManager = externalPackageManager;
 
         this.packageFragmentProvider = new PackageFragmentProvider() {
             @NotNull
@@ -180,11 +184,15 @@ public class ResolveSession implements KotlinCodeAnalyzer {
         if (!fqName.isRoot() && getPackageFragment(fqName.parent()) == null) {
             return null;
         }
+
         PackageMemberDeclarationProvider provider = declarationProviderFactory.getPackageMemberDeclarationProvider(fqName);
         if (provider == null) {
-            return null;
+            if (externalPackageManager.isPackageDeclared(fqName)) {
+                provider = EmptyPackageMemberDeclarationProvider.INSTANCE;
+            }
         }
-        return new LazyPackageDescriptor(module, fqName, this, provider);
+
+        return provider != null ? new LazyPackageDescriptor(module, fqName, this, provider) : null;
     }
 
     public boolean isClassSpecial(@NotNull FqNameUnsafe fqName) {

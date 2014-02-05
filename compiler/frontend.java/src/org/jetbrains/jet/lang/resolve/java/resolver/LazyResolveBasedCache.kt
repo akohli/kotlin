@@ -51,6 +51,7 @@ public class LazyResolveBasedCache() : JavaResolverCache {
         val descriptor = traceBasedCache.getClassResolvedFromSource(fqName)
         if (descriptor != null) return descriptor
 
+        // TODO: Restrict search to sources only
         val classes = ResolveSessionUtils.getClassDescriptorsByFqName(resolveSession, fqName)
         return if (classes.isNotEmpty()) classes.first() else null
     }

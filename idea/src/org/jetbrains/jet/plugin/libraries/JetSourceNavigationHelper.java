@@ -16,7 +16,6 @@
 
 package org.jetbrains.jet.plugin.libraries;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -56,6 +55,7 @@ import org.jetbrains.jet.lang.resolve.DescriptorUtils;
 import org.jetbrains.jet.lang.resolve.java.AnalyzerFacadeForJVM;
 import org.jetbrains.jet.lang.resolve.java.JvmClassName;
 import org.jetbrains.jet.lang.resolve.java.mapping.KotlinToJavaTypesMap;
+import org.jetbrains.jet.lang.resolve.lazy.ExternallyDeclaredPackageManager;
 import org.jetbrains.jet.lang.resolve.lazy.KotlinCodeAnalyzer;
 import org.jetbrains.jet.lang.resolve.lazy.declarations.FileBasedDeclarationProviderFactory;
 import org.jetbrains.jet.lang.resolve.name.FqName;
@@ -219,13 +219,7 @@ public class JetSourceNavigationHelper {
         GlobalContextImpl globalContext = ContextPackage.GlobalContext();
         FileBasedDeclarationProviderFactory providerFactory = new FileBasedDeclarationProviderFactory(
                 globalContext.getStorageManager(),
-                getContainingFiles(candidates),
-                new Predicate<FqName>() {
-                    @Override
-                    public boolean apply(@Nullable FqName fqName) {
-                        return KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME.equals(fqName);
-                    }
-                });
+                getContainingFiles(candidates));
 
         ModuleDescriptorImpl moduleDescriptor = new ModuleDescriptorImpl(Name.special("<library module>"),
                                                                          AnalyzerFacadeForJVM.DEFAULT_IMPORTS,
@@ -238,7 +232,8 @@ public class JetSourceNavigationHelper {
                 globalContext,
                 moduleDescriptor,
                 providerFactory,
-                new BindingTraceContext()).getResolveSession();
+                new BindingTraceContext(),
+                ExternallyDeclaredPackageManager.BUILT_INS_PACKAGE_DECLARATION_MANAGER).getResolveSession();
 
         for (JetNamedDeclaration candidate : candidates) {
             //noinspection unchecked

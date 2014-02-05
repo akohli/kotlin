@@ -47,24 +47,13 @@ public class FileBasedDeclarationProviderFactory implements DeclarationProviderF
         private final Set<FqName> declaredPackages = Sets.newHashSet();
     }
 
-    private final Predicate<FqName> isPackageDeclaredExternally;
-
     private final StorageManager storageManager;
     private final NotNullLazyValue<Index> index;
 
     private final MemoizedFunctionToNullable<FqName, PackageMemberDeclarationProvider> packageDeclarationProviders;
 
-    public FileBasedDeclarationProviderFactory(@NotNull StorageManager storageManager, @NotNull Collection<JetFile> files) {
-        this(storageManager, files, Predicates.<FqName>alwaysFalse());
-    }
-
-    public FileBasedDeclarationProviderFactory(
-            @NotNull StorageManager storageManager,
-            @NotNull final Collection<JetFile> files,
-            @NotNull Predicate<FqName> isPackageDeclaredExternally
-    ) {
+    public FileBasedDeclarationProviderFactory(@NotNull StorageManager storageManager, @NotNull final Collection<JetFile> files) {
         this.storageManager = storageManager;
-        this.isPackageDeclaredExternally = isPackageDeclaredExternally;
         this.index = storageManager.createLazyValue(new Function0<Index>() {
             @Override
             public Index invoke() {
@@ -143,14 +132,12 @@ public class FileBasedDeclarationProviderFactory implements DeclarationProviderF
 
     @Nullable
     public PackageMemberDeclarationProvider createPackageMemberDeclarationProvider(@NotNull FqName packageFqName) {
-        if (!isPackageDeclaredExplicitly(packageFqName)) {
-            if (isPackageDeclaredExternally.apply(packageFqName)) {
-                return EmptyPackageMemberDeclarationProvider.INSTANCE;
-            }
-            return null;
+        if (isPackageDeclaredExplicitly(packageFqName)) {
+            return new FileBasedPackageMemberDeclarationProvider(
+                    storageManager, packageFqName, this, index.invoke().filesByPackage.get(packageFqName));
         }
 
-        return new FileBasedPackageMemberDeclarationProvider(storageManager, packageFqName, this, index.invoke().filesByPackage.get(packageFqName));
+        return null;
     }
 
     @NotNull

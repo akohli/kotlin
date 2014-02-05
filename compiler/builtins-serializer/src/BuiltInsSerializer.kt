@@ -40,7 +40,6 @@ import org.jetbrains.jet.config.CommonConfigurationKeys
 import org.jetbrains.jet.cli.common.messages.MessageCollector
 import org.jetbrains.jet.lang.resolve.java.AnalyzerFacadeForJVM
 import org.jetbrains.jet.lang.resolve.BindingTraceContext
-import org.jetbrains.jet.di.InjectorForJavaDescriptorResolverUtil
 
 public class BuiltInsSerializer(val out: PrintStream?) {
     private var totalSize = 0
@@ -68,9 +67,8 @@ public class BuiltInsSerializer(val out: PrintStream?) {
         val files = environment.getSourceFiles() ?: error("No source files in $sourceRoots")
 
         val project = environment.getProject()
-        val trace = BindingTraceContext()
-        val session = AnalyzerFacadeForJVM.createLazyResolveSession(project, files, trace,
-                                                                    InjectorForJavaDescriptorResolverUtil.create(project, trace), false)
+
+        val session = AnalyzerFacadeForJVM.createLazyResolveSession(project, files, BindingTraceContext(), false)
         val module = session.getModuleDescriptor() ?: error("No module resolved for $sourceRoots")
 
         val fqName = KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME

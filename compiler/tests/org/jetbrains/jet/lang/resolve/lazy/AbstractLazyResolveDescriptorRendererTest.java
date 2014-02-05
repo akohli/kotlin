@@ -65,7 +65,8 @@ public abstract class AbstractLazyResolveDescriptorRendererTest extends KotlinTe
         final ResolveSession resolveSession = new InjectorForLazyResolve(
                 getProject(), globalContext, lazyModule,
                 new FileBasedDeclarationProviderFactory(globalContext.getStorageManager(), files),
-                new BindingTraceContext()).getResolveSession();
+                new BindingTraceContext(),
+                ExternallyDeclaredPackageManager.NO_EXTERNAL_PACKAGES).getResolveSession();
 
         final List<DeclarationDescriptor> descriptors = new ArrayList<DeclarationDescriptor>();
         psiFile.accept(new JetVisitorVoid() {
