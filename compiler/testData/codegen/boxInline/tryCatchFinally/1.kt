@@ -1,53 +1,73 @@
-fun test1() : Int {
-    val inlineX = My(111)
-    var result = 0
-    val res = inlineX.perform<My, Int>{
+fun test1(): Int {
 
-        try {
-            throw RuntimeException()
-        } catch (e: RuntimeException) {
-            result = -1
-        }
-        result
-    }
-
-    return result
+    var res = My(111).performWithFinally<My, Int>(
+            {
+                1
+            }, {
+                 it.value
+            })
+    return res
 }
 
-fun test11() : Int {
-    val inlineX = My(111)
-    val res = inlineX.perform<My, Int>{
-        try {
-            throw RuntimeException()
-        } catch (e: RuntimeException) {
-            -1
-        }
-    }
+fun test11(): Int {
+    var result = -1;
+    val res = My(111).performWithFinally<My, Int>(
+            {
+                try {
+                    result = it.value
+                    throw RuntimeException("1")
+                } catch (e: RuntimeException) {
+                    ++result
+                    throw RuntimeException("2")
+                }
+            },
+            {
+                ++result
+            })
+    return res
+}
+
+fun test2(): Int {
+    var res = My(111).performWithFinally<My, Int>(
+        {
+            throw RuntimeException("1")
+        },
+        {
+            it.value
+        })
+
 
     return res
 }
 
-fun test2() : Int {
+fun test3(): Int {
     try {
-        val inlineX = My(111)
-        var result = 0
-        val res = inlineX.perform<My, Int>{
-            try {
-                throw RuntimeException("-1")
-            } catch (e: RuntimeException) {
-                throw RuntimeException("-2")
-            }
-        }
-        return result
+        var result = -1;
+        val res = My(111).performWithFailFinally<My, Int>(
+                {
+                    result = it.value;
+                    throw RuntimeException("-1")
+                },
+                { (e, z)->
+                    ++result
+                    throw RuntimeException("-2")
+                },
+                {
+                    ++result
+                })
+        return res
     } catch (e: RuntimeException) {
-        return e.getMessage()!!.toInt()!!
+        return e.getMessage()?.toInt()!!
     }
 }
 
 fun box(): String {
-    if (test1() != -1) return "test1: ${test1()}"
-    if (test11() != -1) return "test11: ${test11()}"
-    if (test2() != -2) return "test2: ${test2()}"
+    if (test1() != 111) return "test1: ${test1()}"
+    if (test11() != 113) return "test11: ${test11()}"
+
+    if (test2() != 111) return "test2: ${test2()}"
+    //
+    if (test3() != 113) return "test3: ${test3()}"
 
     return "OK"
 }
