@@ -187,9 +187,9 @@ public class ResolveSession implements KotlinCodeAnalyzer {
 
         PackageMemberDeclarationProvider provider = declarationProviderFactory.getPackageMemberDeclarationProvider(fqName);
         if (provider == null) {
-            if (externalPackageManager.isPackageDeclared(fqName)) {
-                provider = EmptyPackageMemberDeclarationProvider.INSTANCE;
-            }
+            //if (externalPackageManager.isPackageDeclared(fqName)) {
+            //    provider = EmptyPackageMemberDeclarationProvider.INSTANCE;
+            //}
         }
 
         return provider != null ? new LazyPackageDescriptor(module, fqName, this, provider) : null;
@@ -199,6 +199,7 @@ public class ResolveSession implements KotlinCodeAnalyzer {
         return specialClasses.apply(fqName);
     }
 
+    @NotNull
     @Override
     public ModuleDescriptor getModuleDescriptor() {
         return module;
