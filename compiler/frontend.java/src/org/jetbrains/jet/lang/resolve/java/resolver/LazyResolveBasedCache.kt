@@ -32,6 +32,9 @@ import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.jet.lang.resolve.java.structure.impl.JavaClassImpl
+import com.google.common.base.Predicates
+import org.jetbrains.jet.lang.descriptors.impl.PackageViewDescriptorImpl
+import org.jetbrains.jet.util.QualifiedNamesUtil
 
 public class LazyResolveBasedCache() : JavaResolverCache {
     private var resolveSession by Delegates.notNull<ResolveSession>()
@@ -47,12 +50,38 @@ public class LazyResolveBasedCache() : JavaResolverCache {
         traceBasedCache.setTrace(this.resolveSession.getTrace())
     }
 
+    fun FqName.forEachParent(operation: (FqName) -> Boolean) {
+        var parentFqName = this.parent()
+
+        while (operation(parentFqName) && !parentFqName.isRoot()) {
+            parentFqName = parentFqName.parent()
+        }
+    }
+
     override fun getClassResolvedFromSource(fqName: FqName): ClassDescriptor? {
         val descriptor = traceBasedCache.getClassResolvedFromSource(fqName)
         if (descriptor != null) return descriptor
 
-        val classes = ResolveSessionUtils.getClassDescriptorsByFqName(resolveSession, fqName)
-        return if (classes.isNotEmpty()) classes.first() else null
+        var foundClass: ClassDescriptor? = null
+        fqName.forEachParent { (parentFqName: FqName) : Boolean ->
+            val parentPackageFragmentDescriptor = resolveSession.getPackageFragment(parentFqName)
+            if (parentPackageFragmentDescriptor != null) {
+                val classInPackagePath = FqName(QualifiedNamesUtil.tail(parentFqName, fqName))
+                val classDescriptors = ResolveSessionUtils.getClassOrObjectFromPackage(
+                        PackageViewDescriptorImpl(resolveSession.getModuleDescriptor(), parentFqName, listOf(parentPackageFragmentDescriptor)),
+                        classInPackagePath,
+                        { true })
+
+                if (!classDescriptors.isEmpty()) {
+                    foundClass = classDescriptors.first()
+                    return@forEachParent false
+                }
+            }
+
+            true
+        }
+
+        return foundClass
     }
 
     override fun getMethod(method: JavaMethod): SimpleFunctionDescriptor? {
