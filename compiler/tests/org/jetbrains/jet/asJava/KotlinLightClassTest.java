@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,6 +134,19 @@ public abstract class KotlinLightClassTest extends KotlinAsJavaTestBase {
 
         public void testPackage() throws Exception {
             checkModifiers("test.TestPackage", PUBLIC, FINAL);
+        }
+    }
+
+    public static class ClassWithNoTypeField extends KotlinLightClassTest {
+        @Override
+        protected List<File> getKotlinSourceRoots() {
+            return Collections.singletonList(
+                    new File("compiler/testData/asJava/lightClasses/ClassWithNoTypeField.kt")
+            );
+        }
+
+        public void testClassWithNoTypeField() {
+            checkModifiers("test.Test", PUBLIC, FINAL);
         }
     }
 
