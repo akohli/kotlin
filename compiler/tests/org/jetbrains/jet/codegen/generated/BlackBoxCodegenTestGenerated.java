@@ -4471,6 +4471,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             doTest("compiler/testData/codegen/box/primitiveTypes/nullableCharBoolean.kt");
         }
         
+        @TestMetadata("rangeTo.kt")
+        public void testRangeTo() throws Exception {
+            doTest("compiler/testData/codegen/box/primitiveTypes/rangeTo.kt");
+        }
+        
         @TestMetadata("unboxComparable.kt")
         public void testUnboxComparable() throws Exception {
             doTest("compiler/testData/codegen/box/primitiveTypes/unboxComparable.kt");
