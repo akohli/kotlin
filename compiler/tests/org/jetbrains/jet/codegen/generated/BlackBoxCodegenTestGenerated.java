@@ -2717,6 +2717,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             doTest("compiler/testData/codegen/box/functions/ea33909.kt");
         }
         
+        @TestMetadata("equalsOnNullable.kt")
+        public void testEqualsOnNullable() throws Exception {
+            doTest("compiler/testData/codegen/box/functions/equalsOnNullable.kt");
+        }
+        
         @TestMetadata("fakeDescriptorWithSeveralOverridenOne.kt")
         public void testFakeDescriptorWithSeveralOverridenOne() throws Exception {
             doTest("compiler/testData/codegen/box/functions/fakeDescriptorWithSeveralOverridenOne.kt");
@@ -2860,6 +2865,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
         @TestMetadata("recursiveIncrementCall.kt")
         public void testRecursiveIncrementCall() throws Exception {
             doTest("compiler/testData/codegen/box/functions/recursiveIncrementCall.kt");
+        }
+        
+        @TestMetadata("toStringOnNullable.kt")
+        public void testToStringOnNullable() throws Exception {
+            doTest("compiler/testData/codegen/box/functions/toStringOnNullable.kt");
         }
         
         @TestMetadata("compiler/testData/codegen/box/functions/invoke")

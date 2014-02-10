@@ -367,6 +367,9 @@ public class JetTestUtils {
         if (configurationKind == ALL) {
             configuration.add(CLASSPATH_KEY, ForTestCompileRuntime.runtimeJarForTests());
         }
+        else {
+            configuration.add(CLASSPATH_KEY, ForTestCompileRuntime.minimalRuntimeForTests());
+        }
         configuration.addAll(CLASSPATH_KEY, extraClasspath);
 
         if (configurationKind == ALL || configurationKind == JDK_AND_ANNOTATIONS) {
