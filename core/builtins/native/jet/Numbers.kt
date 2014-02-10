@@ -201,7 +201,7 @@ public class Long private () : Number, Comparable<Long> {
   public fun mod(other : Char)   : Long
 
   public fun rangeTo(other : Double) : DoubleRange
-  public fun rangeTo(other : Float)  : FloatRange
+  public fun rangeTo(other : Float)  : DoubleRange
   public fun rangeTo(other : Long)   : LongRange
   public fun rangeTo(other : Int)    : LongRange
   public fun rangeTo(other : Short)  : LongRange

@@ -38,7 +38,6 @@ public class GenerateRangeIntrinsics {
         try {
             String copyright = "injector-generator/copyright.txt";
             out.println(FileUtil.loadFile(new File(copyright)));
-            out.println();
 
             out.println("package jet.runtime;");
             out.println();
@@ -54,6 +53,9 @@ public class GenerateRangeIntrinsics {
                 for (String t2 : strings) {
                     String resType;
                     if (t1.equals("double") || t2.equals("double")) {
+                        resType = "DoubleRange";
+                    }
+                    else if (t1.equals("float") && t2.equals("long") || t1.equals("long") && t2.equals("float")) {
                         resType = "DoubleRange";
                     }
                     else if (t1.equals("float") || t2.equals("float")) {

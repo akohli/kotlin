@@ -1279,7 +1279,7 @@ public final class Long : jet.Number, jet.Comparable<jet.Long> {
     public final fun rangeTo(/*0*/ other: jet.Byte): jet.LongRange
     public final fun rangeTo(/*0*/ other: jet.Char): jet.LongRange
     public final fun rangeTo(/*0*/ other: jet.Double): jet.DoubleRange
-    public final fun rangeTo(/*0*/ other: jet.Float): jet.FloatRange
+    public final fun rangeTo(/*0*/ other: jet.Float): jet.DoubleRange
     public final fun rangeTo(/*0*/ other: jet.Int): jet.LongRange
     public final fun rangeTo(/*0*/ other: jet.Long): jet.LongRange
     public final fun rangeTo(/*0*/ other: jet.Short): jet.LongRange
