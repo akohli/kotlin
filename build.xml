@@ -41,6 +41,9 @@
     <typedef resource="org/jetbrains/jet/buildtools/ant/antlib.xml" classpath="${bootstrap.compiler.home}/lib/kotlin-ant.jar"/>
     <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${dependencies.dir}/ant-contrib.jar"/>
 
+    <!--TODO: get rid of red code-->
+    <propertyregex property="is.bootstrap.build.no.tests" input="${version.prefix}" regexp="^bootstrap-" select="true"/>
+
     <taskdef name="javac2" classname="org.apache.tools.ant.taskdefs.Javac"/>
     <if>
       <istrue value="${generate.assertions}"/>
@@ -291,7 +294,20 @@
         <attribute name="compress" default="true"/>
 
         <sequential>
-          <jar jarfile="@{jarfile}" compress="@{compress}">
+          <if>
+            <isfalse value="is.bootstrap.build.no.tests"/>
+            <then>
+              <property name="compiler.runtime.to.pack" value="${bootstrap.compiler.home}/lib/kotlin-runtime.jar"/>
+              <property name="compiler.manifest.class.path" value="."/>
+            </then>
+            <else>
+              <property name="compiler.runtime.to.pack" value="path-to-non-existing-file.jar"/>
+              <property name="compiler.manifest.class.path" value="kotlin-runtime.jar"/>
+            </else>
+          </if>
+
+          <jar jarfile="@{jarfile}" compress="@{compress}" duplicate="preserve">
+              <zipfileset src="${compiler.runtime.to.pack}" includes="**/*.class" erroronmissingarchive="false"/>
               <fileset dir="${output}/classes/compiler"/>
               <fileset dir="${output}/builtins" includes="jet/**"/>
               <fileset dir="${basedir}/compiler/frontend.java/src" includes="META-INF/services/**"/>
@@ -312,7 +328,7 @@
                   <attribute name="Implementation-Title" value="${manifest.impl.title.kotlin.compiler}"/>
                   <attribute name="Implementation-Version" value="${build.number}"/>
 
-                  <attribute name="Class-Path" value="kotlin-runtime.jar"/>
+                  <attribute name="Class-Path" value="${compiler.manifest.class.path}"/>
                   <attribute name="Main-Class" value="org.jetbrains.jet.cli.jvm.K2JVMCompiler"/>
               </manifest>
           </jar>
@@ -422,6 +438,10 @@
                     }
 
                     -keep class jet.** {
+                        public protected *;
+                    }
+
+                    -keep class kotlin.** {
                         public protected *;
                     }
 
