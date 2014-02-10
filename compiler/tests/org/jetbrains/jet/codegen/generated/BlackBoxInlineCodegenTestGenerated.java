@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,11 @@ import org.jetbrains.jet.codegen.generated.AbstractBlackBoxCodegenTest;
 public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
     public void testAllFilesPresentInBoxInline() throws Exception {
         JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), "org.jetbrains.jet.generators.tests.TestsPackage", new File("compiler/testData/codegen/boxInline"), Pattern.compile("^([^\\.]+)$"), false);
+    }
+    
+    @TestMetadata("builders")
+    public void testBuilders() throws Exception {
+        doTestMultiFile("compiler/testData/codegen/boxInline/builders");
     }
     
     @TestMetadata("captureInlinable")
