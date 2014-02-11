@@ -32,9 +32,7 @@ import org.jetbrains.asm4.MethodVisitor;
 import org.jetbrains.asm4.Type;
 import org.jetbrains.asm4.commons.InstructionAdapter;
 import org.jetbrains.asm4.commons.Method;
-import org.jetbrains.asm4.tree.MethodNode;
 import org.jetbrains.jet.codegen.asm.InlineCodegen;
-import org.jetbrains.jet.codegen.asm.InlineCodegenUtil;
 import org.jetbrains.jet.codegen.asm.Inliner;
 import org.jetbrains.jet.codegen.asm.NameGenerator;
 import org.jetbrains.jet.codegen.binding.CalculatedClosure;
@@ -2129,7 +2127,7 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
     ) {
         boolean disable = false;
         CallableDescriptor descriptor = resolvedCall.getResultingDescriptor();
-        boolean isInline = call != null && descriptor instanceof SimpleFunctionDescriptor && ((SimpleFunctionDescriptor) descriptor).isInline();
+        boolean isInline = call != null && descriptor instanceof SimpleFunctionDescriptor && ((SimpleFunctionDescriptor) descriptor).getInlineStrategy().isInline();
         Inliner inliner = !isInline || tailRecursionCodegen.isTailRecursion(resolvedCall)
                           ? Inliner.NOT_INLINE
                           : new InlineCodegen(this, true, state, disable, (SimpleFunctionDescriptor) callableMethod.getFunctionDescriptor(),
