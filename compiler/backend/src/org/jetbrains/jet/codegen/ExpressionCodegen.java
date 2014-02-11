@@ -2130,7 +2130,7 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
         boolean isInline = call != null && descriptor instanceof SimpleFunctionDescriptor && ((SimpleFunctionDescriptor) descriptor).getInlineStrategy().isInline();
         Inliner inliner = !isInline || tailRecursionCodegen.isTailRecursion(resolvedCall)
                           ? Inliner.NOT_INLINE
-                          : new InlineCodegen(this, true, state, disable, (SimpleFunctionDescriptor) callableMethod.getFunctionDescriptor(),
+                          : new InlineCodegen(this, state, (SimpleFunctionDescriptor) callableMethod.getFunctionDescriptor(),
                                               call);
 
         if (resolvedCall instanceof VariableAsFunctionResolvedCall) {
