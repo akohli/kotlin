@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 JetBrains s.r.o.
+ * Copyright 2010-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,8 +131,16 @@ public class IDELightClassGenerationSupport extends LightClassGenerationSupport 
                 return new LightClassConstructionContext(session.getBindingContext(), null);
             }
             else {
-                KotlinCacheManager cacheManager = KotlinCacheManager.getInstance(project);
-                return new LightClassConstructionContext(cacheManager.getLightClassContextCache().getLightClassBindingContext(classOrObject), null);
+                BindingContext bindingContext;
+                if (JetPsiUtil.isLocal(classOrObject)) {
+                    bindingContext = AnalyzerFacadeWithCache.getContextForElement(classOrObject);
+                }
+                else {
+                    bindingContext = KotlinCacheManager.getInstance(project)
+                            .getPossiblyIncompleteDeclarationsForLightClassGeneration().getBindingContext();
+                }
+
+                return new LightClassConstructionContext(bindingContext, null);
             }
         }
         finally {
