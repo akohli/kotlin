@@ -102,7 +102,13 @@ public class IDELightClassGenerationSupport extends LightClassGenerationSupport 
 
         if (JetPsiUtil.isLocal(classOrObject)) {
             BindingContext bindingContext = session.resolveToElement(classOrObject);
-            ForceResolveUtil.forceResolveAllContents(bindingContext.get(BindingContext.CLASS, classOrObject));
+            ClassDescriptor descriptor = bindingContext.get(BindingContext.CLASS, classOrObject);
+
+            if (descriptor == null) {
+                return new LightClassConstructionContext(BindingContext.EMPTY, null);
+            }
+
+            ForceResolveUtil.forceResolveAllContents(descriptor);
 
             return new LightClassConstructionContext(bindingContext, null);
         }
