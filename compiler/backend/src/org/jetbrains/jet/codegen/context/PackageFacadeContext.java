@@ -30,7 +30,7 @@ public class PackageFacadeContext extends PackageContext {
             @Nullable CodegenContext parent,
             @NotNull Type delegateTo
     ) {
-        super(contextDescriptor, parent);
+        super(contextDescriptor, parent, delegateTo);
         this.delegateTo = delegateTo;
     }
 
