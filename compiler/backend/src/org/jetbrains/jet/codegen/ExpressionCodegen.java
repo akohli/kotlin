@@ -2111,7 +2111,6 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
             @NotNull ResolvedCall<? extends CallableDescriptor> resolvedCall,
             @NotNull StackValue receiver
     ) {
-        //isInline = false;
         boolean disable = false;
         CallableDescriptor descriptor = resolvedCall.getResultingDescriptor();
         boolean isInline = descriptor instanceof SimpleFunctionDescriptor && ((SimpleFunctionDescriptor) descriptor).isInline();
@@ -2132,10 +2131,7 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
             //}
         }
 
-        if (hasDefaults(resolvedCall)) {
-            inliner = Inliner.NOT_INLINE;
-            isInline = false;
-        }
+        assert inliner == Inliner.NOT_INLINE || !hasDefaults(resolvedCall) : "Method with defaults couldn't be inlined " + descriptor;
 
         inliner.putHiddenParams();
 
