@@ -162,7 +162,7 @@ public class LambdaTransformer {
 
         AsmUtil.genClosureFields(newConstructorSignature, classBuilder);
 
-        Method newConstructor = ClosureCodegen.generateConstructor(classBuilder, fields, null, Type.getObjectType(superName), state);
+        Method newConstructor = ClosureCodegen.generateConstructor(classBuilder, fields, null, Type.getObjectType(superName), state, 0);
         invocation.setNewConstructorDescriptor(newConstructor.getDescriptor());
     }
 
