@@ -70,7 +70,7 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
         return new KotlinJavaFileStubProvider<KotlinPackageLightClassData>(
                 project,
                 false,
-                new StubGenerationStrategy.NoDeclaredClasses<KotlinPackageLightClassData>() {
+                new StubGenerationStrategy<KotlinPackageLightClassData>() {
                     @NotNull
                     @Override
                     public LightClassConstructionContext getContext(@NotNull Collection<JetFile> files) {
@@ -108,6 +108,11 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
                         codegen.generate(CompilationErrorHandler.THROW_EXCEPTION);
                         state.getFactory().asList();
                     }
+
+                    @Override
+                    public String toString() {
+                        return StubGenerationStrategy.class.getName() + " for package class";
+                    }
                 }
         );
     }
@@ -117,7 +122,7 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
         return new KotlinJavaFileStubProvider<OutermostKotlinClassLightClassData>(
                 classOrObject.getProject(),
                 JetPsiUtil.isLocal(classOrObject),
-                new StubGenerationStrategy.WithDeclaredClasses<OutermostKotlinClassLightClassData>() {
+                new StubGenerationStrategy<OutermostKotlinClassLightClassData>() {
                     private JetFile getFile() {
                         return (JetFile) classOrObject.getContainingFile();
                     }
@@ -197,6 +202,11 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
                         PackageCodegen packageCodegen = state.getFactory().forPackage(getPackageFqName(), files);
                         packageCodegen.generateClassOrObject(classOrObject);
                         state.getFactory().asList();
+                    }
+
+                    @Override
+                    public String toString() {
+                        return StubGenerationStrategy.class.getName() + " for explicit class " + classOrObject.getName();
                     }
                 }
         );
@@ -335,23 +345,6 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
         @NotNull T createLightClassData(PsiJavaFileStub javaFileStub, BindingContext bindingContext);
 
         GenerationState.GenerateClassFilter generateDeclaredClasses();
-
         void generate(@NotNull GenerationState state, @NotNull Collection<JetFile> files);
-
-        abstract class NoDeclaredClasses<U extends WithFileStub> implements StubGenerationStrategy<U> {
-            @Override
-            public String toString() {
-                // For subclasses to be identifiable in the debugger
-                return NoDeclaredClasses.class.getSimpleName();
-            }
-        }
-
-        abstract class WithDeclaredClasses<U extends WithFileStub> implements StubGenerationStrategy<U> {
-            @Override
-            public String toString() {
-                // For subclasses to be identifiable in the debugger
-                return WithDeclaredClasses.class.getSimpleName();
-            }
-        }
     }
 }
