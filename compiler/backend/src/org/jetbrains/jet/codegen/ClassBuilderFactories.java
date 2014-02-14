@@ -65,7 +65,7 @@ public class ClassBuilderFactories {
 
         @Override
         public ClassBuilder newClassBuilder() {
-            return new ClassBuilder.Concrete(new BinaryClassWriter());
+            return new AbstractClassBuilder.Concrete(new BinaryClassWriter());
         }
 
         @Override
@@ -100,7 +100,7 @@ public class ClassBuilderFactories {
         }
     }
 
-    private static class TraceBuilder extends ClassBuilder.Concrete {
+    private static class TraceBuilder extends AbstractClassBuilder.Concrete {
         public final BinaryClassWriter binary;
 
         public TraceBuilder(BinaryClassWriter binary) {
