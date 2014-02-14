@@ -37,12 +37,12 @@ import org.jetbrains.jet.lang.descriptors.impl.PackageViewDescriptorImpl
 import org.jetbrains.jet.util.QualifiedNamesUtil
 
 public class LazyResolveBasedCache() : JavaResolverCache {
-    private var resolveSession by Delegates.notNull<ResolveSession>()
-    private var traceBasedCache = TraceBasedJavaResolverCache()
-
     class object {
         private val LOG = Logger.getInstance(javaClass<TraceBasedJavaResolverCache>())
     }
+
+    private var resolveSession by Delegates.notNull<ResolveSession>()
+    private val traceBasedCache = TraceBasedJavaResolverCache()
 
     Inject
     public fun setSession(resolveSession: ResolveSession) {
@@ -50,21 +50,15 @@ public class LazyResolveBasedCache() : JavaResolverCache {
         traceBasedCache.setTrace(this.resolveSession.getTrace())
     }
 
-    fun FqName.forEachParent(operation: (FqName) -> Boolean) {
-        var parentFqName = this.parent()
-
-        while (operation(parentFqName) && !parentFqName.isRoot()) {
-            parentFqName = parentFqName.parent()
-        }
-    }
-
     override fun getClassResolvedFromSource(fqName: FqName): ClassDescriptor? {
         val descriptor = traceBasedCache.getClassResolvedFromSource(fqName)
         if (descriptor != null) return descriptor
 
         var foundClass: ClassDescriptor? = null
-        fqName.forEachParent { (parentFqName: FqName) : Boolean ->
+        fqName.forEachParent {
+            (parentFqName: FqName) : Boolean ->
             val parentPackageFragmentDescriptor = resolveSession.getPackageFragment(parentFqName)
+
             if (parentPackageFragmentDescriptor != null) {
                 val classInPackagePath = FqName(QualifiedNamesUtil.tail(parentFqName, fqName))
                 val classDescriptors = ResolveSessionUtils.getClassOrObjectFromPackage(
@@ -119,5 +113,14 @@ public class LazyResolveBasedCache() : JavaResolverCache {
     }
     override fun recordClass(javaClass: JavaClass, descriptor: ClassDescriptor) {
         traceBasedCache.recordClass(javaClass, descriptor)
+    }
+
+    tailRecursive
+    private fun FqName.forEachParent(operation: (FqName) -> Boolean) {
+        if (!operation(this)) return
+
+        if (this.isRoot()) {
+            this.parent().forEachParent(operation)
+        }
     }
 }
