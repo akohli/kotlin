@@ -98,7 +98,7 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
                     }
 
                     @Override
-                    public GenerationState.GenerateClassFilter generateDeclaredClasses() {
+                    public GenerationState.GenerateClassFilter getGenerateClassFilter() {
                         return GenerationState.GenerateClassFilter.ONLY_PACKAGE_CLASS;
                     }
 
@@ -185,7 +185,7 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
                     }
 
                     @Override
-                    public GenerationState.GenerateClassFilter generateDeclaredClasses() {
+                    public GenerationState.GenerateClassFilter getGenerateClassFilter() {
                         return new GenerationState.GenerateClassFilter() {
                             @Override
                             public boolean shouldGenerate(JetClassOrObject generatedClassOrObject) {
@@ -255,7 +255,7 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
                     context.getBindingContext(),
                     Lists.newArrayList(files),
                     /*not-null assertions*/false, false,
-                    /*generateDeclaredClasses=*/stubGenerationStrategy.generateDeclaredClasses(),
+                    /*generateClassFilter=*/stubGenerationStrategy.getGenerateClassFilter(),
                     InlineUtil.DEFAULT_INLINE_FLAG_FOR_STUB);
             state.beforeCompile();
 
@@ -344,7 +344,7 @@ public class KotlinJavaFileStubProvider<T extends WithFileStub> implements Cache
         @NotNull LightClassConstructionContext getContext(@NotNull Collection<JetFile> files);
         @NotNull T createLightClassData(PsiJavaFileStub javaFileStub, BindingContext bindingContext);
 
-        GenerationState.GenerateClassFilter generateDeclaredClasses();
+        GenerationState.GenerateClassFilter getGenerateClassFilter();
         void generate(@NotNull GenerationState state, @NotNull Collection<JetFile> files);
     }
 }
