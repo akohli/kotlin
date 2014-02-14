@@ -109,26 +109,8 @@ public class MethodInliner {
 
         final Iterator<ConstructorInvocation> iterator = constructorInvocationList.iterator();
 
-        Remapper remapper = new Remapper() {
-
-            @Override
-            public String mapType(String type) {
-                String newType = currentTypeMapping.get(type);
-                if (newType != null) {
-                    return newType;
-                }
-
-                if (!isSameModule) {
-                    int indexOfMinus = type.indexOf("-");
-                    if (indexOfMinus > 0) {
-
-                    }
-                }
-
-                return type;
-            }
-        };
-        RemappingMethodAdapter remappingMethodAdapter = new RemappingMethodAdapter(resultNode.access, resultNode.desc, resultNode, remapper);
+        RemappingMethodAdapter remappingMethodAdapter = new RemappingMethodAdapter(resultNode.access, resultNode.desc, resultNode,
+                                                                                   new TypeRemapper(currentTypeMapping, isSameModule));
 
         InlineAdapter inliner = new InlineAdapter(remappingMethodAdapter, parameters.totalSize()) {
 
