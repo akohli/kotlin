@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.asm4.*;
 import org.jetbrains.asm4.commons.Method;
+import org.jetbrains.asm4.commons.RemappingClassAdapter;
 import org.jetbrains.asm4.tree.AbstractInsnNode;
 import org.jetbrains.asm4.tree.FieldInsnNode;
 import org.jetbrains.asm4.tree.MethodNode;
@@ -67,13 +68,13 @@ public class LambdaTransformer {
     private String[] interfaces;
     private boolean isSameModule;
 
-    public LambdaTransformer(String lambdaInternalName, InliningInfo info, boolean isSameModule) {
+    public LambdaTransformer(String lambdaInternalName, InliningInfo info, boolean isSameModule, Type newLambdaType) {
         this.isSameModule = isSameModule;
         this.state = info.state;
         this.typeMapper = state.getTypeMapper();
         this.info = info;
         this.oldLambdaType = Type.getObjectType(lambdaInternalName);
-        newLambdaType = Type.getObjectType(info.nameGenerator.genLambdaClassName());
+        this.newLambdaType = newLambdaType;
 
         //try to find just compiled classes then in dependencies
         ClassReader reader;
