@@ -22,22 +22,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.asm4.*;
 import org.jetbrains.asm4.commons.Method;
-import org.jetbrains.asm4.commons.RemappingClassAdapter;
 import org.jetbrains.asm4.tree.AbstractInsnNode;
 import org.jetbrains.asm4.tree.FieldInsnNode;
 import org.jetbrains.asm4.tree.MethodNode;
 import org.jetbrains.asm4.tree.VarInsnNode;
 import org.jetbrains.jet.OutputFile;
-import org.jetbrains.jet.codegen.AsmUtil;
-import org.jetbrains.jet.codegen.ClassBuilder;
-import org.jetbrains.jet.codegen.ClosureCodegen;
-import org.jetbrains.jet.codegen.FieldInfo;
+import org.jetbrains.jet.codegen.*;
 import org.jetbrains.jet.codegen.state.GenerationState;
 import org.jetbrains.jet.codegen.state.JetTypeMapper;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.jetbrains.asm4.Opcodes.ASM4;
 import static org.jetbrains.asm4.Opcodes.V1_6;
@@ -174,7 +173,8 @@ public class LambdaTransformer {
     }
 
     private ClassBuilder createClassBuilder() {
-        return state.getFactory().forLambdaInlining(newLambdaType, info.call.getCalleeExpression().getContainingFile());
+        return new RemappingClassBuilder(state.getFactory().forLambdaInlining(newLambdaType, info.call.getCalleeExpression().getContainingFile()),
+                     new TypeRemapper(info.typeMapping, isSameModule));
     }
 
     private static MethodVisitor newMethod(ClassBuilder builder, MethodNode original) {
