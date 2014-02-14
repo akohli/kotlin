@@ -285,8 +285,4 @@ public abstract class CodegenTestCase extends UsefulTestCase {
     public Class<? extends Annotation> getCorrespondingAnnotationClass(Class<? extends Annotation> classForName) {
         return ClassLoaderIsolationUtil.getAnnotationClass(classForName, initializedClassLoader);
     }
-
-    public Class<?> getCorrespondingClass(Class<?> classForName) {
-        return ClassLoaderIsolationUtil.getClassFromClassLoader(classForName, initializedClassLoader);
-    }
 }
