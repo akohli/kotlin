@@ -55,7 +55,8 @@ public class LazyResolveBasedCache() : JavaResolverCache {
         if (descriptor != null) return descriptor
 
         var foundClass: ClassDescriptor? = null
-        fqName.forEachParent {
+
+        (if (fqName.isRoot()) fqName else fqName.parent()).each {
             (parentFqName: FqName) : Boolean ->
             val parentPackageFragmentDescriptor = resolveSession.getPackageFragment(parentFqName)
 
@@ -68,7 +69,7 @@ public class LazyResolveBasedCache() : JavaResolverCache {
 
                 if (!classDescriptors.isEmpty()) {
                     foundClass = classDescriptors.first()
-                    return@forEachParent false
+                    return@each false
                 }
             }
 
@@ -116,11 +117,9 @@ public class LazyResolveBasedCache() : JavaResolverCache {
     }
 
     tailRecursive
-    private fun FqName.forEachParent(operation: (FqName) -> Boolean) {
-        if (!operation(this)) return
-
-        if (this.isRoot()) {
-            this.parent().forEachParent(operation)
+    private fun FqName.each(operation: (FqName) -> Boolean) {
+        if (operation(this) && !isRoot()) {
+            parent().each(operation)
         }
     }
 }
