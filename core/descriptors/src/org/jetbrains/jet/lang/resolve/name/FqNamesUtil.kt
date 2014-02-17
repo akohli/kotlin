@@ -112,6 +112,13 @@ public fun isValidJavaFqName(qualifiedName: String?): Boolean {
     return state != State.BEGINNING
 }
 
+tailRecursive
+public fun FqName.each(operation: (FqName) -> Boolean) {
+    if (operation(this) && !isRoot()) {
+        parent().each(operation)
+    }
+}
+
 private fun isSubpackageOf(subpackageNameStr: String, packageNameStr: String): Boolean {
     return subpackageNameStr == packageNameStr ||
         (subpackageNameStr.startsWith(packageNameStr) && subpackageNameStr[packageNameStr.length()] == '.')

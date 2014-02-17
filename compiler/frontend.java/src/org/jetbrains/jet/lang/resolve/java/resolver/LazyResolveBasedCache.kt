@@ -35,6 +35,7 @@ import org.jetbrains.jet.lang.resolve.java.structure.impl.JavaClassImpl
 import com.google.common.base.Predicates
 import org.jetbrains.jet.lang.descriptors.impl.PackageViewDescriptorImpl
 import org.jetbrains.jet.lang.resolve.name.tail
+import org.jetbrains.jet.lang.resolve.name.each
 
 public class LazyResolveBasedCache() : JavaResolverCache {
     class object {
@@ -114,12 +115,5 @@ public class LazyResolveBasedCache() : JavaResolverCache {
     }
     override fun recordClass(javaClass: JavaClass, descriptor: ClassDescriptor) {
         traceBasedCache.recordClass(javaClass, descriptor)
-    }
-
-    tailRecursive
-    private fun FqName.each(operation: (FqName) -> Boolean) {
-        if (operation(this) && !isRoot()) {
-            parent().each(operation)
-        }
     }
 }
