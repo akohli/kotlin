@@ -34,7 +34,7 @@ import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.jet.lang.resolve.java.structure.impl.JavaClassImpl
 import com.google.common.base.Predicates
 import org.jetbrains.jet.lang.descriptors.impl.PackageViewDescriptorImpl
-import org.jetbrains.jet.util.QualifiedNamesUtil
+import org.jetbrains.jet.lang.resolve.name.tail
 
 public class LazyResolveBasedCache() : JavaResolverCache {
     class object {
@@ -61,7 +61,7 @@ public class LazyResolveBasedCache() : JavaResolverCache {
             val parentPackageFragmentDescriptor = resolveSession.getPackageFragment(parentFqName)
 
             if (parentPackageFragmentDescriptor != null) {
-                val classInPackagePath = FqName(QualifiedNamesUtil.tail(parentFqName, fqName))
+                val classInPackagePath = fqName.tail(parentFqName)
                 val classDescriptors = ResolveSessionUtils.getClassOrObjectFromPackage(
                         PackageViewDescriptorImpl(resolveSession.getModuleDescriptor(), parentFqName, listOf(parentPackageFragmentDescriptor)),
                         classInPackagePath,

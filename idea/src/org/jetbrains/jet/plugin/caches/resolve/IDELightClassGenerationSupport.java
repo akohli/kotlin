@@ -46,7 +46,7 @@ import org.jetbrains.jet.plugin.project.ResolveSessionForBodies;
 import org.jetbrains.jet.plugin.stubindex.JetAllPackagesIndex;
 import org.jetbrains.jet.plugin.stubindex.JetClassByPackageIndex;
 import org.jetbrains.jet.plugin.stubindex.JetFullClassNameIndex;
-import org.jetbrains.jet.util.QualifiedNamesUtil;
+import org.jetbrains.jet.lang.resolve.name.NamePackage;
 
 import java.util.*;
 
@@ -199,10 +199,10 @@ public class IDELightClassGenerationSupport extends LightClassGenerationSupport 
         for (JetFile file : files) {
             FqName fqName = JetPsiUtil.getFQName(file);
 
-            assert QualifiedNamesUtil.isSubpackageOf(fqName, fqn) : "Registered package is not a subpackage of actually declared package:\n" +
-                                                                    "in index: " + fqn + "\n" +
-                                                                    "declared: " + fqName;
-            FqName subpackage = QualifiedNamesUtil.plusOneSegment(fqn, fqName);
+            assert NamePackage.isSubpackageOf(fqName, fqn) : "Registered package is not a subpackage of actually declared package:\n" +
+                                                             "in index: " + fqn + "\n" +
+                                                             "declared: " + fqName;
+            FqName subpackage = NamePackage.plusOneSegment(fqn, fqName);
             if (subpackage != null) {
                 result.add(subpackage);
             }
